@@ -80,6 +80,7 @@ npm run dev
 ```
 
 Then open:
+
 - Dashboard → http://localhost:5173
 - API docs  → http://localhost:8000/docs
 
@@ -97,8 +98,8 @@ Then open:
 
 Dev mode ships with three ready-to-use accounts:
 
-| Email | Password |
-|-------|----------|
+| Email                  | Password     |
+| ---------------------- | ------------ |
 | `admin@botforge.dev` | `admin123` |
 | `demo@botforge.app`  | `demo123`  |
 | `test@test.com`      | `test123`  |
@@ -241,20 +242,20 @@ For the *why* behind these choices, see **[docs/decisions.md](docs/decisions.md)
 
 ## Tech stack
 
-| Layer | Tech |
-|-------|------|
-| **Backend** | FastAPI · Python 3.11 · Pydantic v2 · Pydantic-Settings · Uvicorn |
-| **Frontend** | React 18 · TypeScript · Vite · TailwindCSS · Zustand · React Router · Recharts · Axios · native WebSocket |
-| **AI / LLM** | Anthropic Claude · OpenAI GPT-4o · Groq / any OpenAI-compatible API · Ollama (LLaMA 3.1, LLaVA) · sentence-transformers (`all-MiniLM-L6-v2`) |
-| **RAG** | ChromaDB · LangChain text splitter · PyPDF2 · python-docx · BeautifulSoup |
-| **Speech / Vision** | OpenAI Whisper API · faster-whisper (offline) · Claude Vision · GPT-4o Vision · LLaVA |
-| **Database / Auth** | Supabase (PostgreSQL + Auth + Storage) · zero-config in-memory dev fallback |
-| **Background jobs** | Celery · Redis |
-| **Real-time** | WebSocket (agent inbox) · Server-Sent Events (chat streaming) |
-| **Channels** | Meta WhatsApp Cloud API · Instagram Graph API · Slack Bolt · IMAP / SMTP |
-| **Auth & security** | JWT (`python-jose`) · `passlib[bcrypt]` |
-| **Tooling** | Ruff · Pytest · pytest-asyncio · TypeScript strict · ESLint · Prettier |
-| **Infra** | Render (backend) · Vercel (frontend) · GitHub Actions CI · Makefile |
+| Layer                     | Tech                                                                                                                                               |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Backend**         | FastAPI · Python 3.11 · Pydantic v2 · Pydantic-Settings · Uvicorn                                                                              |
+| **Frontend**        | React 18 · TypeScript · Vite · TailwindCSS · Zustand · React Router · Recharts · Axios · native WebSocket                                  |
+| **AI / LLM**        | Anthropic Claude · OpenAI GPT-4o · Groq / any OpenAI-compatible API · Ollama (LLaMA 3.1, LLaVA) · sentence-transformers (`all-MiniLM-L6-v2`) |
+| **RAG**             | ChromaDB · LangChain text splitter · PyPDF2 · python-docx · BeautifulSoup                                                                      |
+| **Speech / Vision** | OpenAI Whisper API · faster-whisper (offline) · Claude Vision · GPT-4o Vision · LLaVA                                                          |
+| **Database / Auth** | Supabase (PostgreSQL + Auth + Storage) · zero-config in-memory dev fallback                                                                       |
+| **Background jobs** | Celery · Redis                                                                                                                                    |
+| **Real-time**       | WebSocket (agent inbox) · Server-Sent Events (chat streaming)                                                                                     |
+| **Channels**        | Meta WhatsApp Cloud API · Instagram Graph API · Slack Bolt · IMAP / SMTP                                                                        |
+| **Auth & security** | JWT (`python-jose`) · `passlib[bcrypt]`                                                                                                       |
+| **Tooling**         | Ruff · Pytest · pytest-asyncio · TypeScript strict · ESLint · Prettier                                                                        |
+| **Infra**           | Render (backend) · Vercel (frontend) · GitHub Actions CI · Makefile                                                                             |
 
 ## Project structure
 
