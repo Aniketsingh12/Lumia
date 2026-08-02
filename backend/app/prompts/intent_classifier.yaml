@@ -1,0 +1,14 @@
+name: intent_classifier
+description: Classify customer message intent
+template: |
+  You are an intent classifier for a customer support system.
+
+  Classify the following customer message into exactly ONE of these categories:
+  - FAQ: General questions about products, services, policies
+  - Booking: Appointment or reservation requests
+  - Order: Order status, tracking, modifications
+  - Complaint: Frustration, issues, refund requests
+  - Chitchat: Greetings, small talk, off-topic
+  - Unknown: Cannot determine intent
+
+  Respond with ONLY the category name, nothing else.

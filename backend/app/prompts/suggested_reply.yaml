@@ -1,0 +1,13 @@
+name: suggested_reply
+description: Generate suggested reply for human agents
+template: |
+  You are helping a human support agent for {bot_name}.
+
+  The AI chatbot was unable to fully resolve this conversation and it has been
+  escalated to a human agent.
+
+  Conversation history:
+  {conversation_history}
+
+  Based on the conversation, suggest a helpful, professional reply the agent
+  could send to the customer. Write only the suggested reply text, nothing else.

@@ -1,0 +1,58 @@
+# Core
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.18
+python-dotenv==1.0.1
+pydantic[email]==2.10.4
+pydantic-settings==2.7.1
+email-validator==2.2.0
+tf-keras
+
+# Database
+supabase==2.11.0
+
+# AI / LLM
+anthropic==0.42.0
+openai==1.58.1
+langchain==0.3.14
+langchain-community==0.3.14
+langchain-text-splitters==0.3.4
+sentence-transformers==3.3.1
+
+# Optional: local speech-to-text (no OpenAI key needed). Set VOICE_PROVIDER=local to use.
+faster-whisper==1.1.0
+
+# Vector DB
+chromadb==0.5.23
+
+# Document parsing
+PyPDF2==3.0.1
+python-docx==1.1.2
+beautifulsoup4==4.12.3
+unstructured==0.16.12
+
+# Background tasks
+celery[redis]==5.4.0
+redis==5.2.1
+
+# WebSocket
+websockets==14.1
+
+# Channel integrations
+slack-bolt==1.22.0
+httpx==0.28.1
+
+# Utilities
+pyyaml==6.0.2
+Jinja2==3.1.5
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.25.0
+httpx==0.28.1
+
+# Code quality
+ruff==0.8.6
