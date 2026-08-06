@@ -9,6 +9,7 @@ Pre-seeded accounts:
 """
 
 import uuid
+
 from passlib.hash import bcrypt
 
 # ── Seed data ──────────────────────────────────────────────────────────────
@@ -37,7 +38,11 @@ _ORGS: list[dict] = [{"id": _ORG_ID, "name": "Dev Org", "plan": "free", "owner_i
 
 # ── QuerySet shim — mimics Supabase client chaining ───────────────────────
 class _Result:
-    def __init__(self, data): self.data = data
+    def __init__(self, data, count=None):
+        self.data = data
+        # Supabase sets this when select(..., count="exact") was requested;
+        # None otherwise. Callers commonly do `result.count or 0`.
+        self.count = count
 
 class _Query:
     def __init__(self, rows):
@@ -49,11 +54,11 @@ class _Query:
         self._insert_data: dict | None = None
         self._cols: list[str] | None = None
         self._limit: int | None = None
+        self._count_requested = False
 
     def select(self, cols="*", count=None):
-        # `count` is accepted for API compat but not implemented; callers that need
-        # exact counts should use len(result.data) instead in dev mode.
         self._cols = None if cols == "*" else [c.strip() for c in cols.split(",")]
+        self._count_requested = count is not None
         return self
 
     def insert(self, data: dict):
@@ -109,14 +114,16 @@ class _Query:
                     self._backing.remove(r)
             return _Result([])
 
-        # SELECT — apply limit, then return copies so callers can't mutate the store
+        # SELECT — count reflects all matching rows before limit is applied,
+        # matching Supabase's count="exact" semantics (independent of pagination).
+        exact_count = len(rows) if self._count_requested else None
         if self._limit is not None:
             rows = rows[: self._limit]
         if self._cols:
             rows = [{c: r[c] for c in self._cols if c in r} for r in rows]
         else:
             rows = [dict(r) for r in rows]
-        return _Result(rows)
+        return _Result(rows, count=exact_count)
 
 
 class _Table:
@@ -135,7 +142,7 @@ class _Table:
             self._tables[name] = []
         self._rows = self._tables[name]
 
-    def select(self, cols="*"): return _Query(self._rows).select(cols)
+    def select(self, cols="*", count=None): return _Query(self._rows).select(cols, count)
     def insert(self, data): return _Query(self._rows).insert(data)
     def update(self, data): return _Query(self._rows).update(data)
     def delete(self): return _Query(self._rows).delete()

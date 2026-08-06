@@ -12,10 +12,11 @@ tf-keras
 supabase==2.11.0
 
 # AI / LLM
+# Only the lightweight text-splitters package is used (app/utils/text_splitter.py) —
+# the full langchain / langchain-community packages are NOT imported anywhere and
+# were removed: they add ~200MB of transitive deps for zero benefit.
 anthropic==0.42.0
 openai==1.58.1
-langchain==0.3.14
-langchain-community==0.3.14
 langchain-text-splitters==0.3.4
 sentence-transformers==3.3.1
 
@@ -26,10 +27,13 @@ faster-whisper==1.1.0
 chromadb==0.5.23
 
 # Document parsing
+# (unstructured was removed — unused; app/utils/file_parser.py parses PDF/DOCX/CSV
+# directly with PyPDF2/python-docx/csv, and unstructured's optional extras need
+# system packages like poppler-utils/libmagic that aren't installed, which is a
+# common Docker build failure for a dependency nothing calls.)
 PyPDF2==3.0.1
 python-docx==1.1.2
 beautifulsoup4==4.12.3
-unstructured==0.16.12
 
 # Background tasks
 celery[redis]==5.4.0
@@ -39,7 +43,8 @@ redis==5.2.1
 websockets==14.1
 
 # Channel integrations
-slack-bolt==1.22.0
+# (slack-bolt was removed — unused; app/services/channel_router.py calls the
+# Slack Web API directly over httpx instead of using the Bolt SDK.)
 httpx==0.28.1
 
 # Utilities

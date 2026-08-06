@@ -31,18 +31,137 @@ Document Processing Flow:
        d. Store the embeddings in ChromaDB (vector database)
        e. Update the database record with chunk count and status "ready"
     4. The bot can now use these chunks when answering questions.
+
+    Celery requires a Redis broker to dispatch that background task. On a
+    deployment with no Redis configured (e.g. the free single-service portfolio
+    deploy), `.delay()` raises immediately instead of queuing anything. Rather
+    than fail the upload outright, every dispatch below is wrapped in
+    `_dispatch_or_run_inline()`, which falls back to processing the document
+    synchronously, in-request, using the same ingest logic. This keeps uploads
+    working with zero extra infrastructure; when Redis *is* configured, nothing
+    about that faster, non-blocking path changes.
 """
 
-import uuid
-import tempfile
+import asyncio
 import os
+import tempfile
+import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from app.database import get_supabase
-from app.models.knowledge import DocResponse, URLIngest
 from app.middleware.auth import get_current_user
+from app.models.knowledge import DocResponse, URLIngest
+
+
+def _broker_quickly_reachable(timeout: float = 0.3) -> bool:
+    """
+    Best-effort, tightly-bounded TCP probe of the Celery broker (Redis).
+
+    `task.delay(...)` is supposed to fail fast when the broker is unreachable,
+    but in practice — with no Redis at all, e.g. the free single-service
+    portfolio deploy — it can take 60-90+ seconds to actually raise. Celery's
+    own `broker_connection_retry` setting doesn't stop this: redis-py wraps the
+    raw socket connect() in its own retry policy (redis.retry.Retry, configured
+    independently of Celery) that backs off across several attempts before
+    finally giving up. Rather than fight retry settings spread across three
+    different libraries, do a plain socket connect with our own short timeout
+    first, and skip `.delay()` entirely when it fails — the slow retry path
+    inside Celery/redis-py is then simply never triggered.
+    """
+    import socket
+    from urllib.parse import urlparse
+
+    from app.config import get_settings
+
+    try:
+        parsed = urlparse(get_settings().redis_url)
+        addr = (parsed.hostname or "localhost", parsed.port or 6379)
+        with socket.create_connection(addr, timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
+async def _dispatch_or_run_inline(task, args: tuple, make_inline_coro) -> None:
+    """
+    Try to queue `task` on Celery; if no broker is reachable, run the inline
+    fallback instead so the request still completes the work itself.
+
+    See `_broker_quickly_reachable` for why the broker's reachability is
+    checked ourselves first, rather than just wrapping `task.delay(*args)` in
+    try/except and relying on it to fail fast on its own.
+
+    `make_inline_coro` is a zero-arg callable that RETURNS the fallback
+    coroutine (e.g. `lambda: _ingest_inline(...)`), not the coroutine itself —
+    calling it only when dispatch is skipped or fails means the fallback
+    coroutine is never constructed (and never risks a "coroutine was never
+    awaited" warning) on the normal, successful-dispatch path.
+    """
+    if not await asyncio.to_thread(_broker_quickly_reachable):
+        await make_inline_coro()
+        return
+
+    try:
+        task.delay(*args)
+    except Exception:
+        await make_inline_coro()
+
+
+async def _ingest_inline(bot_id: str, doc_id: str, file_path: str, file_type: str, db) -> None:
+    """
+    Synchronous (in-request) equivalent of tasks.document_tasks.process_document.
+
+    RAGPipeline.ingest_document is `async def`, but its actual work — parsing
+    the file and running the embedding model — is entirely synchronous, CPU-bound
+    code underneath. Normally that's fine because Celery runs it in a separate
+    worker *process*. Awaiting it directly here means that work runs on Uvicorn's
+    single event-loop thread and blocks other in-flight requests for as long as
+    embedding takes (roughly 5-60s depending on document size on a free-tier
+    CPU) — this is only acceptable because it's a fallback for deploys with no
+    Redis at all, where the alternative was every upload failing outright.
+    (A version of this that offloaded to a worker thread via asyncio.to_thread +
+    a nested asyncio.run() was tried and reverted: it deadlocked the entire
+    server, including completely unrelated requests, rather than just serializing
+    slowly — that failure mode is much worse than temporary blocking, so plain
+    `await` stays despite being non-concurrent. If this needs real concurrency
+    later, run an actual Celery worker with Redis instead of fixing this further.)
+    """
+    from app.services.rag_pipeline import RAGPipeline
+
+    try:
+        rag = RAGPipeline()
+        chunk_count = await rag.ingest_document(bot_id, file_path, file_type, doc_id)
+        db.table("knowledge_docs").update(
+            {"status": "ready", "chunk_count": chunk_count}
+        ).eq("id", doc_id).execute()
+        docs = (
+            db.table("knowledge_docs")
+            .select("id", count="exact")
+            .eq("bot_id", bot_id)
+            .eq("status", "ready")
+            .execute()
+        )
+        db.table("bots").update({"doc_count": docs.count or 0}).eq("id", bot_id).execute()
+    except Exception as exc:
+        db.table("knowledge_docs").update(
+            {"status": "error", "error_message": str(exc)}
+        ).eq("id", doc_id).execute()
+
+
+async def _reindex_inline(bot_id: str, db) -> None:
+    """Synchronous (in-request) equivalent of tasks.document_tasks.reindex_bot."""
+    from app.services.rag_pipeline import RAGPipeline
+
+    rag = RAGPipeline()
+    await rag.reindex_all(bot_id)
+
+    docs = db.table("knowledge_docs").select("*").eq("bot_id", bot_id).execute()
+    for doc in docs.data or []:
+        await _ingest_inline(
+            bot_id, doc["id"], doc.get("file_url", ""), doc.get("file_type", "txt"), db
+        )
 
 # Create the router instance. Mounted with prefix like "/api/knowledge".
 router = APIRouter()
@@ -165,11 +284,16 @@ async def upload_doc(
     }
     result = db.table("knowledge_docs").insert(doc_data).execute()
 
-    # Trigger the Celery background task to parse, chunk, embed, and index the document.
-    # The .delay() method sends the task to the Celery worker queue asynchronously.
+    # Trigger the Celery background task to parse, chunk, embed, and index the
+    # document — or process it inline immediately if no Redis broker is
+    # reachable (see _dispatch_or_run_inline above).
     from app.tasks.document_tasks import process_document
 
-    process_document.delay(bot_id, doc_id, file_path, file_type)
+    await _dispatch_or_run_inline(
+        process_document,
+        (bot_id, doc_id, file_path, file_type),
+        lambda: _ingest_inline(bot_id, doc_id, file_path, file_type, db),
+    )
 
     return result.data[0]
 
@@ -223,10 +347,16 @@ async def ingest_url(
     }
     result = db.table("knowledge_docs").insert(doc_data).execute()
 
-    # Trigger background processing for the URL (same task as file upload, different type)
+    # Trigger background processing for the URL (same task as file upload,
+    # different type), falling back to inline processing if no broker is
+    # reachable.
     from app.tasks.document_tasks import process_document
 
-    process_document.delay(bot_id, doc_id, url_data.url, "url")
+    await _dispatch_or_run_inline(
+        process_document,
+        (bot_id, doc_id, url_data.url, "url"),
+        lambda: _ingest_inline(bot_id, doc_id, url_data.url, "url", db),
+    )
 
     return result.data[0]
 
@@ -296,7 +426,7 @@ async def reindex_docs(bot_id: str, current_user: dict = Depends(get_current_use
 
     from app.tasks.document_tasks import reindex_bot
 
-    reindex_bot.delay(bot_id)
+    await _dispatch_or_run_inline(reindex_bot, (bot_id,), lambda: _reindex_inline(bot_id, db))
     return {"message": "Reindexing started"}
 
 

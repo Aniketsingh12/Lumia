@@ -1,0 +1,71 @@
+# Railway configuration for the Lumio backend.
+#
+# Set this service's Root Directory to `backend` in the Railway dashboard —
+# Railway then reads this file from here. TOML is used over railway.json purely
+# because it supports the comments below.
+#
+# Not everything can live in this file: Railway configures volumes, the Redis
+# plugin, and environment variables through the dashboard. What each of those
+# needs is documented inline so nothing is guesswork. Full walkthrough lives in
+# ../DEPLOY.md.
+
+[build]
+# The repo already ships a Dockerfile that pre-bakes the sentence-transformers
+# embedding model into the image, so builds are slow but first requests are not.
+# Without this, Railway would auto-detect and use Nixpacks instead, which would
+# skip that step and re-download the model on first use.
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# No startCommand: the Dockerfile's CMD already binds to Railway's injected
+# $PORT (`uvicorn --port ${PORT:-7860}`). Setting one here would override that
+# and risk drifting out of sync with the Dockerfile.
+healthcheckPath = "/health"
+
+# First boot imports torch and loads the embedding model, which is slow on a
+# cold container. Railway's default healthcheck window can expire before the
+# app is listening and mark a perfectly good deploy as failed, so give it room.
+healthcheckTimeout = 300
+
+# Restart on crash, but bounded — a container that's failing because of a bad
+# env var will never fix itself by restarting forever.
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Dashboard setup this file cannot express
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# 1. VOLUME (needed if you want the knowledge base to survive redeploys)
+#    Add a volume to this service mounted at:  /app/chroma_data
+#    and set CHROMA_PERSIST_DIR=/app/chroma_data
+#    Without it, embedded ChromaDB writes to the container's ephemeral
+#    filesystem and every uploaded document is lost on the next deploy.
+#    (The Dockerfile already chmods that path so the non-root runtime user can
+#    write to it.)
+#
+# 2. REDIS (optional, but this is Railway's main advantage over Render here)
+#    Add a Redis database to the project, then set on THIS service:
+#        REDIS_URL = ${{Redis.REDIS_URL}}
+#    That reference variable is resolved by Railway at deploy time.
+#    With Redis reachable, document uploads dispatch to a Celery worker and
+#    return instantly. Without it, the API falls back to processing uploads
+#    inline in the request (see app/routers/knowledge.py) — still correct, just
+#    slower and blocking for the duration of the upload.
+#
+# 3. CELERY WORKER (only useful once Redis exists)
+#    Create a SECOND service from the same repo, same root directory, and
+#    override its start command in the dashboard to:
+#        celery -A app.tasks.celery_app worker --loglevel=info --concurrency=1
+#    Give it the same REDIS_URL, SUPABASE_*, and LLM provider variables as the
+#    web service. It needs no volume and no healthcheck (it isn't an HTTP
+#    service).
+#
+# 4. ENVIRONMENT VARIABLES — see ../DEPLOY.md for the full list. The ones that
+#    are easy to get wrong:
+#      JWT_SECRET  must NOT be the placeholder from .env.example (anyone could
+#                  forge a login token). Generate a fresh random value.
+#      API_URL     this service's own public Railway URL. Channel webhook
+#                  callback URLs are built from it.
+#      APP_URL     the frontend's origin, used for CORS.

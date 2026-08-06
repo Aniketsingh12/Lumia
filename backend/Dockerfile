@@ -33,7 +33,15 @@ COPY . .
 
 # Vectors (embedded Chroma) live here. On hosts without a persistent volume this
 # resets on redeploy — fine for a demo; mount a volume here for real persistence.
-RUN mkdir -p /app/chroma_data
+#
+# Hugging Face Spaces (and some other hosts) run the container as a non-root
+# user at runtime regardless of what this Dockerfile specifies, while every
+# RUN/COPY above executes as root during the build. Without this chmod, that
+# mismatch means the app can READ its own files but gets a silent permission
+# error the first time someone uploads a document and Chroma tries to WRITE a
+# new vector to disk. World-writable is acceptable here because this is a
+# single-tenant container, not shared multi-user hosting.
+RUN mkdir -p /app/chroma_data && chmod -R 777 /app/chroma_data
 
 EXPOSE 7860
 
