@@ -1,0 +1,14 @@
+# Keep the build context small and avoid copying host-built artifacts into the
+# image (the Dockerfile builds `dist` itself inside the build stage).
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+*.log
+
+.git/
+.gitignore
+.vscode/
+.idea/
+.DS_Store
