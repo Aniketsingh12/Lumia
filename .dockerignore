@@ -1,0 +1,34 @@
+# Build context is the repo root, so this keeps both halves' junk out of the
+# image and stops host-built artifacts shadowing what the Dockerfile builds.
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/.venv/
+**/venv/
+**/.pytest_cache/
+**/.ruff_cache/
+
+# Node
+**/node_modules/
+frontend/dist/
+
+# Secrets and local state — must never reach the image
+**/.env
+**/.env.local
+**/.env.*.local
+**/chroma_data/
+backend/static_frontend/
+**/*.log
+
+# Docs and tooling that don't affect the runtime image
+.git/
+.github/
+.claude/
+docs/
+widget/
+scripts/
+*.md
+.vscode/
+.idea/
+.DS_Store

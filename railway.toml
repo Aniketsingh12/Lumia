@@ -1,0 +1,40 @@
+# Railway configuration for Lumio, deployed as ONE service that serves both the
+# React dashboard and the FastAPI API from a single container and domain.
+#
+# Required dashboard settings for Railway to use this file and this layout:
+#
+#   1. Settings → Root Directory       = (empty — the build needs the repo root,
+#                                         because it copies both frontend/ and
+#                                         backend/)
+#   2. Settings → Config-as-code path  = /railway.toml
+#      This path is ABSOLUTE FROM THE REPO ROOT. A relative value like
+#      "railway.toml" fails the deploy with
+#      "service config at 'railway.toml' not found".
+#
+# Required as a service VARIABLE (not settable here):
+#   VITE_API_URL = https://<this service's own public domain>
+# Vite inlines VITE_* at build time, so changing it needs a rebuild, not a
+# restart. See the ARG in the root Dockerfile.
+#
+# Recommended: attach a volume mounted at /app/chroma_data and set
+# CHROMA_PERSIST_DIR to match, or uploaded documents are lost on every redeploy.
+
+[build]
+# Use the repo's root Dockerfile (Node build stage → Python runtime with the
+# built dashboard copied in) rather than letting Railpack guess. Railpack would
+# see a Python app and never build the frontend at all.
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/health"
+
+# Cold start imports torch and loads the embedding model before Uvicorn binds.
+# Railway's default healthcheck window can expire first and fail an otherwise
+# healthy deploy, so give it room.
+healthcheckTimeout = 300
+
+# Restart on crash, but bounded — a container failing on a bad env var will
+# never fix itself by restarting forever.
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

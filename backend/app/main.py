@@ -36,9 +36,10 @@ WHY FASTAPI?
 import os
 from contextlib import asynccontextmanager  # For managing app startup/shutdown
 
-from fastapi import FastAPI  # The web framework
+from fastapi import FastAPI, HTTPException  # The web framework
 from fastapi.middleware.cors import CORSMiddleware  # Cross-Origin Resource Sharing
-from fastapi.responses import FileResponse  # For serving the widget.js file
+from fastapi.responses import FileResponse  # For serving widget.js and the dashboard
+from fastapi.staticfiles import StaticFiles  # For serving the built dashboard assets
 
 # Import our configuration (loads .env file)
 from app.config import get_settings
@@ -177,17 +178,71 @@ async def widget_js():
     )
 
 
-# ── ROOT ENDPOINT ──
-# GET http://localhost:8000/
-# Simple health check — useful to verify the server is running
-@app.get("/")
-async def root():
-    return {"name": "Lumio API", "version": "1.0.0", "status": "running"}
-
-
 # ── HEALTH CHECK ──
 # GET http://localhost:8000/health
 # Used by monitoring tools and load balancers to check if the server is alive
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+
+# ── SINGLE-SERVICE FRONTEND HOSTING ──
+# In deployment we ship ONE service: the Docker build compiles the React
+# dashboard and drops it here, and this app serves it alongside the API. That
+# means one domain and one bill, and — because the dashboard is then same-origin
+# with the API — no CORS involvement for the dashboard at all.
+#
+# When the directory is absent (local dev with `npm run dev`, and in tests) every
+# route below degrades to the original API-only behaviour, so nothing changes for
+# development.
+_FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "static_frontend")
+_FRONTEND_INDEX = os.path.join(_FRONTEND_DIR, "index.html")
+_SERVE_FRONTEND = os.path.isfile(_FRONTEND_INDEX)
+
+if _SERVE_FRONTEND:
+    # Vite emits hashed filenames under /assets and fingerprints them, so they
+    # are safe to cache hard. index.html itself must NOT be cached that way or
+    # browsers would keep loading an old build after a deploy.
+    _ASSETS_DIR = os.path.join(_FRONTEND_DIR, "assets")
+    if os.path.isdir(_ASSETS_DIR):
+        app.mount("/assets", StaticFiles(directory=_ASSETS_DIR), name="assets")
+
+
+@app.get("/")
+async def root():
+    """Serve the dashboard when it's bundled in; otherwise report API status."""
+    if _SERVE_FRONTEND:
+        return FileResponse(_FRONTEND_INDEX)
+    return {"name": "Lumio API", "version": "1.0.0", "status": "running"}
+
+
+if _SERVE_FRONTEND:
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        """
+        Catch-all that backs the dashboard's client-side routing.
+
+        Registered last, so every real API route, /docs and /widget.js are
+        matched first and never reach this. A request for a path that exists as
+        a built file (favicon, etc.) returns that file; anything else returns
+        index.html so React Router can resolve routes like /dashboard or
+        /bots/:id on a refresh or deep link.
+        """
+        # An unmatched /api/... path is a genuinely missing endpoint. Without
+        # this guard it would return index.html with a 200, so a typo'd API call
+        # would look "successful" to the client and fail confusingly later.
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not Found")
+
+        # Resolve against the frontend dir and confirm the result stays inside
+        # it, so encoded traversal (e.g. ../../etc/passwd) can't escape.
+        candidate = os.path.normpath(os.path.join(_FRONTEND_DIR, full_path))
+        if (
+            full_path
+            and candidate.startswith(os.path.normpath(_FRONTEND_DIR) + os.sep)
+            and os.path.isfile(candidate)
+        ):
+            return FileResponse(candidate)
+
+        return FileResponse(_FRONTEND_INDEX)

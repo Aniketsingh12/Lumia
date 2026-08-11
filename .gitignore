@@ -54,3 +54,6 @@ logs/
 htmlcov/
 .coverage
 coverage.xml
+
+# Dashboard build copied in by the Docker build (never committed)
+backend/static_frontend/
