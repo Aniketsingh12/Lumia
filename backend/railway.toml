@@ -1,8 +1,17 @@
 # Railway configuration for the Lumio backend.
 #
-# Set this service's Root Directory to `backend` in the Railway dashboard —
-# Railway then reads this file from here. TOML is used over railway.json purely
-# because it supports the comments below.
+# Two dashboard settings are required for Railway to use this file at all:
+#
+#   1. Settings → Root Directory        = backend
+#   2. Settings → Config-as-code path   = /backend/railway.toml
+#
+# That second path is ABSOLUTE FROM THE REPO ROOT, not relative to the root
+# directory. Setting it to just "railway.toml" fails the deploy outright with
+# "service config at 'railway.toml' not found", because Railway resolves it
+# from the repo root where no such file exists. (Leaving the field empty is
+# also fine — Railway then auto-detects this file inside the root directory.)
+#
+# TOML is used over railway.json purely because it supports the comments below.
 #
 # Not everything can live in this file: Railway configures volumes, the Redis
 # plugin, and environment variables through the dashboard. What each of those
