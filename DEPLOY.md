@@ -25,15 +25,17 @@ Two things are mandatory regardless of path:
 
 | Piece | Service | Cost |
 |---|---|---|
-| LLM | **Groq** — Llama 3.1, OpenAI-compatible, very fast | Free |
+| LLM | **Together AI** — open-source models via an OpenAI-compatible API | Pay-per-token |
 | Backend | **Hugging Face Spaces** (Docker, 16 GB RAM) | Free |
 | Frontend | **Vercel** | Free |
 | Database | in-memory dev DB (`USE_DEV_DB=true`) | Free |
 | Vectors | embedded ChromaDB | Free |
 
-### 1. Get a free Groq API key
+### 1. Get a Together AI API key
 
-Sign up at <https://console.groq.com> (no card required) and create a key — it looks like `gsk_...`. Groq serves the same open-source Llama models you can run locally with Ollama, but responses land in well under a second instead of ~20s on CPU.
+Create a key at <https://api.together.ai>. Together serves the same open-source Llama models you can run locally with Ollama, but on their hardware — replies land in about a second instead of ~20s on a laptop CPU.
+
+Because Together exposes an OpenAI-compatible API, this needs no code changes: the `openai` provider is simply pointed at their base URL.
 
 ### 2. Deploy the backend to Hugging Face Spaces
 
@@ -58,9 +60,9 @@ The backend already has a `Dockerfile`.
    | Key | Value |
    |---|---|
    | `LLM_PROVIDER` | `openai` |
-   | `OPENAI_BASE_URL` | `https://api.groq.com/openai/v1` |
-   | `OPENAI_API_KEY` | your `gsk_...` key — add as a **secret** |
-   | `OPENAI_MODEL` | `llama-3.1-8b-instant` |
+   | `OPENAI_BASE_URL` | `https://api.together.xyz/v1` |
+   | `OPENAI_API_KEY` | your Together AI key — add as a **secret** |
+   | `OPENAI_MODEL` | `meta-llama/Llama-3.3-70B-Instruct-Turbo` |
    | `USE_DEV_DB` | `true` |
    | `CHROMA_MODE` | `embedded` |
    | `JWT_SECRET` | the value you generated above — add as a **secret** |
@@ -89,7 +91,7 @@ Use a seed account (in-memory dev DB): `admin@botforge.dev` / `admin123`.
 
 - **The backend sleeps after ~48h idle** and takes ~30s to wake. Open the demo link once before showing it to someone.
 - **Data resets** whenever the Space rebuilds or wakes cold, because `USE_DEV_DB=true`. Seed logins always come back; bots and uploaded documents don't. Set `USE_DEV_DB=false` + Supabase to keep them.
-- **Groq free has rate limits** — fine for a demo, not for real traffic.
+- **Together AI bills per token** — cheap for a demo (a 70B model runs well under a cent per conversation), but it is not free like a sleeping container is. Keep an eye on usage if you make the demo public.
 
 ---
 
@@ -108,14 +110,14 @@ Use this once a real client depends on it. Free tiers sleep, rate-limit, and off
 
 Both work and both are configured in this repo. Pick one:
 
-| | **Render** (`render.yaml`) | **Railway** (`backend/railway.toml`) |
+| | **Render** (`render.yaml`) | **Railway** (`railway.toml`) |
 |---|---|---|
+| What deploys | API only — frontend goes to Vercel separately | **API + dashboard in one service** (root `Dockerfile`) |
 | Setup | One-click Blueprint — provisions the service, disk, and `JWT_SECRET` automatically | A few dashboard steps (volume, variables) |
-| Cost | ~$7/mo Starter | Usage-based, ~$5/mo minimum (no free tier) |
+| Cost | ~$7/mo Starter + separate frontend host | Usage-based, ~$5/mo minimum, one service total |
 | Adding Redis | Separate provider (e.g. Upstash) | One click, same project |
-| Best when | You want the least setup | You want the Celery worker + Redis path |
 
-**Why Railway is worth it here:** adding Redis is a single click, which switches document uploads from the inline fallback (blocking, processes in-request) to the real async Celery path (instant response, processed by a worker). On Render you'd wire up an external Redis to get the same thing.
+**Why Railway is set up as a single service here:** the root `Dockerfile` builds the React dashboard and copies it into the Python image, so FastAPI serves both from one domain. That halves the hosting and makes the dashboard same-origin with the API, so it doesn't depend on CORS at all. Adding Redis is also one click, which upgrades document uploads from the inline fallback (blocking, processed in-request) to the real async Celery path.
 
 #### Option A — Render
 
@@ -124,24 +126,33 @@ Both work and both are configured in this repo. Pick one:
 3. Fill in the values marked `sync: false` in the dashboard: `SUPABASE_*`, `OPENAI_API_KEY` (or `CLAUDE_API_KEY`), `APP_URL`, `API_URL`.
 4. Upgrade the web service to the **Starter** plan (~$7/mo) so it never sleeps.
 
-#### Option B — Railway
+#### Option B — Railway (single service: API + dashboard)
 
 1. Push to GitHub → <https://railway.app> → **New Project → Deploy from GitHub repo**.
-2. Open the service → **Settings → Root Directory** → set to `backend`. Railway then picks up `backend/railway.toml`, which pins it to the Dockerfile build and sets the `/health` check.
-3. **Settings → Networking → Generate Domain** to get the public URL (you need it for `API_URL`).
-4. **Variables** → add everything from the [environment variable reference](#environment-variable-reference) below. Generate a real `JWT_SECRET` — Railway does not do this for you the way Render's Blueprint does.
+2. Open the service → **Settings**:
+   - **Root Directory** → leave **empty** (`/`). The build copies both `frontend/` and `backend/`, so it needs the repo root — pointing it at `backend` breaks the frontend stage.
+   - **Config-as-code path** → `/railway.toml`. This must be **absolute from the repo root**; a relative `railway.toml` fails the deploy with *"service config at 'railway.toml' not found"*.
+3. **Settings → Networking → Generate Domain** to get the public URL.
+4. **Variables** → add everything from the [environment variable reference](#environment-variable-reference) below, plus:
+   - `API_URL` and `APP_URL` → both the domain from step 3 (one service, one origin)
+   - `VITE_API_URL` → the same domain. **This is read at build time**, because Vite inlines `VITE_*` into the bundle — changing it later needs a rebuild, not just a restart.
+   - A real `JWT_SECRET` — Railway does not generate one for you the way Render's Blueprint does.
 5. *(Recommended)* **Add a volume** mounted at `/app/chroma_data`, and set `CHROMA_PERSIST_DIR=/app/chroma_data`. Without it, uploaded documents are wiped on every redeploy.
-6. *(Optional)* **+ New → Database → Redis**, then set `REDIS_URL=${{Redis.REDIS_URL}}` on the backend service. To actually consume the queue, add a second service from the same repo and root directory with the start command:
+6. *(Optional)* **+ New → Database → Redis**, then set `REDIS_URL=${{Redis.REDIS_URL}}`. To actually consume the queue, add a second service from the same repo with the start command:
    ```
    celery -A app.tasks.celery_app worker --loglevel=info --concurrency=1
    ```
-   Give it the same variables as the web service. Skip this entirely if you're fine with inline upload processing.
+   Give it the same variables. Skip this entirely if you're fine with inline upload processing.
 
-For better answer quality than free Llama on either host, set `LLM_PROVIDER=claude` and add `CLAUDE_API_KEY`.
+Once deployed, the domain serves the dashboard at `/` and the API under `/api` — there is no separate frontend to deploy.
 
-### 3. Frontend — Vercel
+For better answer quality than open-source models on either host, set `LLM_PROVIDER=claude` and add `CLAUDE_API_KEY`.
 
-Same as Path A step 3, with `VITE_API_URL` pointing at the Render URL.
+### 3. Frontend
+
+On **Railway** the dashboard ships inside the same service — nothing more to do.
+
+On **Render**, deploy the frontend separately to Vercel as in Path A step 3, with `VITE_API_URL` pointing at the Render URL.
 
 ### 4. Post-deploy checklist
 
@@ -196,11 +207,12 @@ CHROMA_MODE=embedded             # embedded | http
 CHROMA_PERSIST_DIR=./chroma_data
 
 # ── LLM (pick one) ──
-# Free, fast, open-source models via Groq:
+# Open-source models via Together AI (OpenAI-compatible):
 LLM_PROVIDER=openai
-OPENAI_BASE_URL=https://api.groq.com/openai/v1
-OPENAI_API_KEY=gsk_...
-OPENAI_MODEL=llama-3.1-8b-instant
+OPENAI_BASE_URL=https://api.together.xyz/v1
+OPENAI_API_KEY=<your Together AI key>
+OPENAI_MODEL=meta-llama/Llama-3.3-70B-Instruct-Turbo
+OPENAI_VISION_MODEL=meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo
 
 # Or Anthropic for best quality:
 # LLM_PROVIDER=claude

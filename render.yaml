@@ -53,17 +53,19 @@ services:
         value: /opt/render/project/src/backend/chroma_data
 
       # ── LLM provider ──
-      # "openai" + OPENAI_BASE_URL pointed at Groq gives free, fast inference on
-      # open-source Llama models. Switch to "claude" and set CLAUDE_API_KEY for
-      # higher answer quality.
+      # "openai" + OPENAI_BASE_URL pointed at Together AI serves open-source
+      # models through the OpenAI-compatible API. Switch to "claude" and set
+      # CLAUDE_API_KEY for higher answer quality.
       - key: LLM_PROVIDER
         value: openai
       - key: OPENAI_BASE_URL
-        value: https://api.groq.com/openai/v1
+        value: https://api.together.xyz/v1
       - key: OPENAI_MODEL
-        value: llama-3.1-8b-instant
+        value: meta-llama/Llama-3.3-70B-Instruct-Turbo
+      - key: OPENAI_VISION_MODEL
+        value: meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo
       - key: OPENAI_API_KEY
-        sync: false        # Groq key (gsk_...) or an OpenAI key
+        sync: false        # Together AI key (or an OpenAI key)
       - key: CLAUDE_API_KEY
         sync: false        # only needed when LLM_PROVIDER=claude
 

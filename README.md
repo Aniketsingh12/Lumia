@@ -6,7 +6,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)](https://fastapi.tiangolo.com/)
 [![React 18](https://img.shields.io/badge/React-18-61dafb)](https://react.dev/)
 
-> **RAG-powered chatbots for any business — pick a genre (support, sales, booking, tutor, coding, or a fully custom character), upload documents, connect WhatsApp / Instagram / Slack / Email from the dashboard, or embed on your site. Runs on Claude, OpenAI, Groq, *or* fully offline with Ollama.**
+> **RAG-powered chatbots for any business — pick a genre (support, sales, booking, tutor, coding, or a fully custom character), upload documents, connect WhatsApp / Instagram / Slack / Email from the dashboard, or embed on your site. Runs on Claude, OpenAI, Together AI, *or* fully offline with Ollama.**
 
 **[Live demo →](https://botforge-demo.example.com)** &nbsp;·&nbsp; **[API docs →](https://botforge-demo.example.com/docs)** &nbsp;·&nbsp; **[Tech decisions →](docs/decisions.md)**
 
@@ -119,21 +119,21 @@ ollama pull llava               # vision (optional)
 #   VOICE_PROVIDER=local
 ```
 
-**Option B — free hosted inference via [Groq](https://console.groq.com)**
-(same open-source Llama models, ~500 tokens/sec instead of local CPU speed):
+**Option B — hosted inference via [Together AI](https://api.together.ai)**
+(same open-source models, served on their GPUs instead of local CPU):
 
 ```bash
 # In backend/.env:
 #   LLM_PROVIDER=openai
-#   OPENAI_BASE_URL=https://api.groq.com/openai/v1
-#   OPENAI_API_KEY=gsk_...          # free key, no card required
-#   OPENAI_MODEL=llama-3.1-8b-instant
+#   OPENAI_BASE_URL=https://api.together.xyz/v1
+#   OPENAI_API_KEY=<your Together AI key>
+#   OPENAI_MODEL=meta-llama/Llama-3.3-70B-Instruct-Turbo
 ```
 
-`OPENAI_BASE_URL` works with any OpenAI-compatible endpoint (Groq,
-OpenRouter, Together, a self-hosted vLLM server, ...) — the `openai`
-provider talks to whichever one you point it at. See
-[`DEPLOY.md`](DEPLOY.md) for a full $0 deployment using this.
+`OPENAI_BASE_URL` works with any OpenAI-compatible endpoint (Together AI,
+OpenRouter, Fireworks, a self-hosted vLLM server, ...) — the `openai`
+provider talks to whichever one you point it at, with no code changes. See
+[`DEPLOY.md`](DEPLOY.md) for a full deployment using this.
 
 Embeddings always run locally via `sentence-transformers`, so RAG works
 without a single paid API key either way.
@@ -237,7 +237,7 @@ For the *why* behind these choices, see **[docs/decisions.md](docs/decisions.md)
 - **Embeddable widget** — Single `<script>` tag for any site; renders in a
   Shadow DOM so it never clashes with the host page's CSS.
 - **Vision + voice** — Customers can send photos and voice notes.
-- **LLM-agnostic** — Claude / OpenAI / Groq (or any OpenAI-compatible API) /
+- **LLM-agnostic** — Claude / OpenAI / Together AI (or any OpenAI-compatible API) /
   Ollama, configurable per deployment.
 
 ## Tech stack
@@ -246,7 +246,7 @@ For the *why* behind these choices, see **[docs/decisions.md](docs/decisions.md)
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Backend**         | FastAPI · Python 3.11 · Pydantic v2 · Pydantic-Settings · Uvicorn                                                                              |
 | **Frontend**        | React 18 · TypeScript · Vite · TailwindCSS · Zustand · React Router · Recharts · Axios · native WebSocket                                  |
-| **AI / LLM**        | Anthropic Claude · OpenAI GPT-4o · Groq / any OpenAI-compatible API · Ollama (LLaMA 3.1, LLaVA) · sentence-transformers (`all-MiniLM-L6-v2`) |
+| **AI / LLM**        | Anthropic Claude · OpenAI GPT-4o · Together AI / any OpenAI-compatible API · Ollama (LLaMA 3.1, LLaVA) · sentence-transformers (`all-MiniLM-L6-v2`) |
 | **RAG**             | ChromaDB · LangChain text splitter · PyPDF2 · python-docx · BeautifulSoup                                                                      |
 | **Speech / Vision** | OpenAI Whisper API · faster-whisper (offline) · Claude Vision · GPT-4o Vision · LLaVA                                                          |
 | **Database / Auth** | Supabase (PostgreSQL + Auth + Storage) · zero-config in-memory dev fallback                                                                       |
@@ -287,7 +287,7 @@ botforge/
 │   └── deployment.md
 ├── scripts/                 # migrate.py, seed_demo.py, test_whatsapp.py
 ├── start.bat / start.ps1    # One-click local launcher (Windows)
-├── DEPLOY.md                # $0 portfolio deployment (Groq + HF Spaces + Vercel)
+├── DEPLOY.md                # Deployment guide (Railway single service, Render, HF Spaces)
 ├── render.yaml              # Render deploy blueprint
 ├── Makefile                 # `make backend`, `make test`, `make lint`, ...
 └── .github/workflows/ci.yml
@@ -311,7 +311,7 @@ CI runs on every push: ruff, pytest, `tsc --noEmit`, and `vite build`.
 - **[Channels setup](docs/channels.md)** — connecting WhatsApp, Instagram,
   Slack, Email per bot from the dashboard
 - **[Deployment](docs/deployment.md)** — Render / Vercel / Fly
-- **[Free portfolio deployment](DEPLOY.md)** — $0/mo on Groq + Hugging Face
+- **[Deployment guide](DEPLOY.md)** — Railway single service, or Hugging Face
   Spaces + Vercel
 
 > **Before deploying anywhere real:** change `JWT_SECRET` in `backend/.env`

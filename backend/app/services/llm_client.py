@@ -67,7 +67,7 @@ class LLMClient:
 
         When `openai_base_url` is blank the SDK talks to real OpenAI. When it's
         set, the exact same code path talks to any OpenAI-compatible endpoint
-        (Groq, OpenRouter, Together, self-hosted vLLM, ...). This is what lets a
+        (Together AI, OpenRouter, Fireworks, self-hosted vLLM, ...). This is what lets a
         deployment serve free open-source models without changing any logic.
         """
         from openai import AsyncOpenAI

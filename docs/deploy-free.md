@@ -8,7 +8,7 @@ Total cost: **$0/month** (plus LLM API usage, usually <$5/mo on cheap models).
 2. **Upstash** — Redis (free 10k commands/day)
 3. **Render** — Python backend + Celery worker (free, sleeps when idle)
 4. **Vercel** — React frontend (free, always on)
-5. **Groq** OR **Gemini** OR **Claude Haiku** — LLM
+5. **Together AI** OR **Claude** — LLM
 
 Total time: **~30 minutes**.
 
@@ -51,9 +51,9 @@ Don't have `gh`? Create the repo on github.com → copy the `git remote add` com
 
 ## 4. Pick an LLM provider (free options)
 
-### Option A — Groq (fastest, free, recommended)
-1. https://console.groq.com → sign up → API Keys → Create
-2. Set `LLM_PROVIDER=openai` and point `OPENAI_API_KEY` at Groq's key, `OPENAI_BASE_URL=https://api.groq.com/openai/v1`, `OPENAI_MODEL=llama-3.3-70b-versatile`
+### Option A — Together AI (recommended)
+1. https://api.together.ai → sign up → create an API key
+2. Set `LLM_PROVIDER=openai`, `OPENAI_API_KEY=<your Together key>`, `OPENAI_BASE_URL=https://api.together.xyz/v1`, `OPENAI_MODEL=meta-llama/Llama-3.3-70B-Instruct-Turbo`
 3. Free tier: 30 req/min, plenty for demo
 
 ### Option B — Google Gemini (free)

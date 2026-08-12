@@ -50,8 +50,8 @@ class Settings(BaseSettings):
     claude_api_key: str = ""  # From: console.anthropic.com
     openai_api_key: str = ""  # From: platform.openai.com
     # Custom OpenAI-compatible endpoint. Leave blank for real OpenAI. Set this to
-    # point the "openai" provider at any OpenAI-compatible API — e.g. Groq
-    # (https://api.groq.com/openai/v1), OpenRouter, Together, or a self-hosted
+    # point the "openai" provider at any OpenAI-compatible API — e.g. Together AI
+    # (https://api.together.xyz/v1), OpenRouter, Fireworks, or a self-hosted
     # vLLM/LM Studio server. This is how we serve free open-source models
     # (Llama, etc.) in deployment without running Ollama on the server.
     openai_base_url: str = ""
