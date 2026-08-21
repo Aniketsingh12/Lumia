@@ -39,7 +39,7 @@ Connection Manager:
 """
 
 import json
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
 from app.models.message import ChatRequest, ChatResponse, ChatFeedback, MessageResponse
@@ -48,7 +48,13 @@ from app.services.agent import Agent
 from app.services.conversation_manager import ConversationManager
 from app.services.notification_service import notify_escalation
 from app.middleware.auth import get_current_user
+from app.middleware.rate_limiter import check_bot_quota, check_rate_limit
 from app.database import get_supabase
+
+
+def _client_ip(conn) -> str:
+    """IP for rate limiting — works for both an HTTP Request and a WebSocket."""
+    return conn.client.host if conn.client else "unknown"
 
 # Create the router instance. Mounted with prefix like "/api/chat".
 router = APIRouter()
@@ -124,7 +130,7 @@ manager = ConnectionManager()
 
 
 @router.post("/", response_model=ChatResponse)
-async def send_message(request: ChatRequest):
+async def send_message(request: ChatRequest, http_request: Request):
     """
     Send a customer message and receive an AI-generated response.
 
@@ -170,6 +176,9 @@ async def send_message(request: ChatRequest):
         - intent (str): The detected intent of the customer's message
         - handoff (bool): Whether the conversation was escalated to a human
     """
+    await check_rate_limit(_client_ip(http_request))
+    await check_bot_quota(request.bot_id)
+
     ai_engine = AIEngine()
     conv_manager = ConversationManager()
 
@@ -275,7 +284,7 @@ async def send_message(request: ChatRequest):
 
 
 @router.post("/agent")
-async def send_message_agent(request: ChatRequest):
+async def send_message_agent(request: ChatRequest, http_request: Request):
     """
     Send a message to a tool-using agent.
 
@@ -288,6 +297,9 @@ async def send_message_agent(request: ChatRequest):
     which is also persisted on the message so it appears in the agent
     dashboard for transparency / debugging.
     """
+    await check_rate_limit(_client_ip(http_request))
+    await check_bot_quota(request.bot_id)
+
     agent = Agent()
     conv_manager = ConversationManager()
 
@@ -354,7 +366,7 @@ async def send_message_agent(request: ChatRequest):
 
 
 @router.post("/stream")
-async def send_message_stream(request: ChatRequest):
+async def send_message_stream(request: ChatRequest, http_request: Request):
     """
     Stream an AI response token-by-token via Server-Sent Events.
 
@@ -372,6 +384,9 @@ async def send_message_stream(request: ChatRequest):
     or `handoff`. Confidence and handoff can only be decided after the full
     answer is generated, so they ship with the final event.
     """
+    await check_rate_limit(_client_ip(http_request))
+    await check_bot_quota(request.bot_id)
+
     ai_engine = AIEngine()
     conv_manager = ConversationManager()
 
@@ -512,6 +527,17 @@ async def websocket_chat(websocket: WebSocket, conversation_id: str):
 
             # Process incoming WebSocket message (same logic as the REST endpoint)
             if message.get("type") == "message":
+                bot_id = message.get("bot_id", "")
+                # A raised HTTPException has no HTTP response cycle to attach to on
+                # an open socket, so catch it and reply in-band instead of letting
+                # it propagate and kill the connection.
+                try:
+                    await check_rate_limit(_client_ip(websocket))
+                    await check_bot_quota(bot_id)
+                except HTTPException as exc:
+                    await websocket.send_json({"type": "error", "detail": exc.detail})
+                    continue
+
                 ai_engine = AIEngine()
                 conv_manager = ConversationManager()
 
@@ -527,7 +553,6 @@ async def websocket_chat(websocket: WebSocket, conversation_id: str):
 
                 # Load bot configuration
                 db = get_supabase()
-                bot_id = message.get("bot_id", "")
                 bot_result = db.table("bots").select("*").eq("id", bot_id).execute()
                 bot_config = bot_result.data[0] if bot_result.data else {}
 

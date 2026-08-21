@@ -31,7 +31,7 @@ Design Decisions:
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from jose import jwt
 from passlib.hash import bcrypt
 
@@ -39,6 +39,7 @@ from app.config import get_settings
 from app.database import get_supabase
 from app.models.user import UserCreate, UserLogin, UserResponse, TokenResponse
 from app.middleware.auth import get_current_user
+from app.middleware.rate_limiter import check_rate_limit
 
 # Create the router instance. This will be mounted on the main app with a prefix
 # like "/api/auth", so endpoints here become "/api/auth/signup", "/api/auth/login", etc.
@@ -72,7 +73,7 @@ def create_token(user_id: str) -> str:
 
 
 @router.post("/signup", response_model=TokenResponse)
-async def signup(user: UserCreate):
+async def signup(user: UserCreate, http_request: Request):
     """
     Register a new user account and organization.
 
@@ -103,6 +104,9 @@ async def signup(user: UserCreate):
     Error Responses:
         - 400: Email already registered
     """
+    ip = http_request.client.host if http_request.client else "unknown"
+    await check_rate_limit(ip, scope="auth", limit=10)
+
     db = get_supabase()
 
     # Check if email exists
@@ -161,7 +165,7 @@ async def signup(user: UserCreate):
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(credentials: UserLogin):
+async def login(credentials: UserLogin, http_request: Request):
     """
     Authenticate an existing user with email and password.
 
@@ -190,6 +194,9 @@ async def login(credentials: UserLogin):
     Error Responses:
         - 401: Invalid credentials (wrong email or wrong password)
     """
+    ip = http_request.client.host if http_request.client else "unknown"
+    await check_rate_limit(ip, scope="auth", limit=10)
+
     db = get_supabase()
 
     result = db.table("users").select("*").eq("email", credentials.email).execute()

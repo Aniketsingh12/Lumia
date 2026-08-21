@@ -98,6 +98,13 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"  # Hashing algorithm for token signing
     jwt_expiration_hours: int = 24  # Token expires after 24 hours
 
+    # ── ABUSE PROTECTION ──
+    # The chat endpoints are deliberately public (no login) so an anonymous
+    # website visitor can use the embeddable widget. See middleware/rate_limiter.py
+    # for how these two independent caps bound LLM cost without requiring auth.
+    rate_limit_per_minute: int = 20     # max chat requests per IP per 60s
+    bot_daily_message_limit: int = 300  # max AI replies per bot per UTC day
+
     # ── META GRAPH API ──
     # Version used for all WhatsApp/Instagram Graph calls. Meta retires versions
     # roughly two years after release, so keep this current and change it in one
