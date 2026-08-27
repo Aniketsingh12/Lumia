@@ -197,7 +197,7 @@ export default function Dashboard() {
                     'text-left p-3 rounded-lg border transition-colors',
                     newBotType === genre.id
                       ? 'bg-primary-50 border-primary-300'
-                      : 'bg-white border-gray-200 hover:border-gray-300'
+                      : 'bg-card border-gray-200 hover:border-gray-300'
                   )}
                 >
                   <div className="flex items-center gap-2 mb-1">

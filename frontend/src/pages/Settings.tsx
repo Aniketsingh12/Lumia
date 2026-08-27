@@ -169,8 +169,8 @@ export default function Settings() {
                   'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold',
                   'whitespace-nowrap flex-shrink-0 md:w-full transition-all duration-200',
                   activeTab === tab.id
-                    ? 'bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-glow'
-                    : 'text-ink-600 hover:bg-white/70 hover:text-ink-900'
+                    ? 'bg-gradient-to-br from-primary-500 to-primary-700 text-primary-foreground shadow-glow'
+                    : 'text-ink-600 hover:bg-card hover:text-ink-900'
                 )}
               >
                 <tab.icon className="w-4 h-4 flex-shrink-0" />
@@ -223,7 +223,7 @@ export default function Settings() {
                       className="flex items-center justify-between gap-3 py-3"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 flex-shrink-0 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-white flex items-center justify-center text-sm font-bold">
+                        <div className="w-9 h-9 flex-shrink-0 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-primary-foreground flex items-center justify-center text-sm font-bold">
                           {(member.full_name || member.email).charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
@@ -402,9 +402,9 @@ export default function Settings() {
       >
         {newKey ? (
           <div className="space-y-4">
-            <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3">
-              <ShieldAlert className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-amber-800">
+            <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">
+              <ShieldAlert className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-300">
                 Copy this now — it's shown once and can't be retrieved later.
               </p>
             </div>

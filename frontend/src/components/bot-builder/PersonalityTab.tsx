@@ -129,7 +129,7 @@ export default function PersonalityTab({ bot }: PersonalityTabProps) {
                 'text-left p-3 rounded-lg border transition-colors',
                 botType === genre.id
                   ? 'bg-primary-50 border-primary-300'
-                  : 'bg-white border-gray-200 hover:border-gray-300'
+                  : 'bg-card border-gray-200 hover:border-gray-300'
               )}
             >
               <div className="flex items-center gap-2">
@@ -187,7 +187,7 @@ export default function PersonalityTab({ bot }: PersonalityTabProps) {
               className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors capitalize ${
                 tone === t
                   ? 'bg-primary-50 border-primary-300 text-primary-700'
-                  : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                  : 'bg-card border-gray-200 text-gray-600 hover:border-gray-300'
               }`}
             >
               {t}

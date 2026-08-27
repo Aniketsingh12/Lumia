@@ -53,7 +53,7 @@ export default function BotBuilder() {
           className={cn(
             'flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors',
             bot.is_active
-              ? 'bg-green-100 text-green-700 hover:bg-green-200'
+              ? 'bg-green-500/15 text-green-300 hover:bg-green-200'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           )}
         >

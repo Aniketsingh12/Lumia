@@ -1,231 +1,302 @@
 import { Link } from 'react-router-dom'
 import {
-  Sparkles, Zap, MessageSquare, BarChart3, Globe, Shield, Bot,
-  ArrowRight, Check,
+  ArrowRight, BarChart3, Bot, Check, Code2, Cpu, FileText, Github, Globe,
+  Instagram, Layers, Mail, MessageCircle, MessageSquare, Mic, Slack, Sparkles,
+  UserCheck, Wand2, Workflow, Zap,
 } from 'lucide-react'
+import Navbar from '../components/landing/Navbar'
+import HeroSection from '../components/landing/HeroSection'
+import Reveal from '../components/landing/Reveal'
 
 const features = [
-  { icon: Bot, title: 'AI-Powered RAG', desc: 'Answers come from your own documents, with source citations and a confidence score on every reply.' },
-  { icon: MessageSquare, title: 'Multi-Channel', desc: 'Website widget, WhatsApp, Instagram, Slack and Email — connected from the dashboard, no config files.' },
-  { icon: Zap, title: 'Six Bot Genres', desc: 'Support, Sales, Booking, Tutor, Coding, or a custom character persona for casual conversation.' },
-  { icon: BarChart3, title: 'Smart Analytics', desc: 'Top questions, knowledge gaps, channel breakdown and satisfaction — all at a glance.' },
-  { icon: Globe, title: 'Human Handoff', desc: 'The AI handles routine queries and escalates anything it is not confident about to a real agent.' },
-  { icon: Shield, title: 'Self-Hosted', desc: 'Run it on your own infrastructure with local models. Your data never leaves your servers.' },
+  {
+    icon: FileText,
+    title: 'RAG with real citations',
+    desc: 'Documents are chunked, embedded locally and searched per bot. Every answer points back at the source chunk it came from — no silent hallucinations.',
+  },
+  {
+    icon: Layers,
+    title: 'Six bot genres',
+    desc: 'Support, Sales, Booking, Tutor, Coding, or a free-form Character persona. Each one changes grounding strictness and whether low confidence escalates.',
+  },
+  {
+    icon: Wand2,
+    title: 'AI prompt generator',
+    desc: "Describe the bot in plain English and get a structured system prompt back. You don't have to be good at prompting to get a good bot.",
+  },
+  {
+    icon: Workflow,
+    title: 'Tool-using agent',
+    desc: 'A real agent loop: the model picks tools — search the knowledge base, capture a lead, escalate — runs them, and iterates until it can answer.',
+  },
+  {
+    icon: Zap,
+    title: 'Token streaming',
+    desc: 'Replies stream over Server-Sent Events, so answers appear as they are written instead of after an awkward pause. Works through any proxy.',
+  },
+  {
+    icon: UserCheck,
+    title: 'Confidence-gated handoff',
+    desc: "The model rates its own certainty. Below the line — or on a complaint — the conversation escalates to a human instead of guessing.",
+  },
+  {
+    icon: BarChart3,
+    title: 'Analytics that act',
+    desc: 'Top questions, channel breakdown, resolution rate — plus a knowledge-gap list telling you exactly which questions your docs fail to answer.',
+  },
+  {
+    icon: Cpu,
+    title: 'Any model you like',
+    desc: 'Claude, OpenAI, Together AI, or fully offline with Ollama. One environment variable switches the whole platform — no code changes.',
+  },
+  {
+    icon: Mic,
+    title: 'Vision and voice',
+    desc: 'Customers can send photos and voice notes. Images route to your chosen vision model; speech-to-text runs on Whisper or fully offline.',
+  },
 ]
 
 const steps = [
-  { step: '1', title: 'Upload Your Knowledge', desc: 'Drag in PDFs, docs or URLs. We chunk, embed and index everything automatically.' },
-  { step: '2', title: 'Pick a Genre & Personality', desc: 'Choose what kind of bot it is, set the tone and rules — or let the AI write the prompt for you.' },
-  { step: '3', title: 'Connect Your Channels', desc: 'Paste one script tag on your site, or connect WhatsApp, Instagram and Slack with a guided setup.' },
-  { step: '4', title: 'Go Live', desc: 'Flip the switch. Your bot starts answering with citations, and escalates when it is unsure.' },
+  { step: '01', title: 'Upload your knowledge', desc: 'Drag in PDFs, Word docs, spreadsheets or paste a URL. Everything is parsed, chunked, embedded and indexed automatically.' },
+  { step: '02', title: 'Pick a genre and a voice', desc: 'Choose what kind of bot it is, set the tone and rules — or describe it in a sentence and let the prompt generator write it for you.' },
+  { step: '03', title: 'Connect your channels', desc: 'Paste one script tag on your site, or connect WhatsApp, Instagram, Slack and Email with guided setup and a live credential test.' },
+  { step: '04', title: 'Go live', desc: 'Flip the switch. Your bot answers with citations, escalates when unsure, and every conversation lands in your dashboard.' },
+]
+
+const channels = [
+  { icon: Globe, name: 'Website widget', note: 'One script tag. Shadow DOM, so it never fights your CSS.' },
+  { icon: MessageCircle, name: 'WhatsApp', note: 'Meta Cloud API, with your own number per bot.' },
+  { icon: Instagram, name: 'Instagram', note: 'Auto-reply to DMs from a Business or Creator account.' },
+  { icon: Slack, name: 'Slack', note: 'Answer questions right inside your workspace.' },
+  { icon: Mail, name: 'Email', note: 'Send replies from your own support inbox over SMTP.' },
+]
+
+const openSourcePoints = [
+  'Self-host it anywhere — your data never has to leave your servers',
+  'Run entirely offline with Ollama and local embeddings',
+  'No per-seat pricing, no message caps, no vendor lock-in',
+  'Swap the language model without touching a line of code',
 ]
 
 export default function Landing() {
   return (
-    <div className="min-h-screen relative overflow-x-hidden">
-      {/* Ambient background */}
-      <div className="app-mesh" />
-      {/* Floating orbs for depth — decorative only */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed -top-40 -left-40 w-[32rem] h-[32rem] rounded-full bg-primary-400/20 blur-3xl animate-float-slow"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed top-1/3 -right-40 w-[28rem] h-[28rem] rounded-full bg-accent-400/20 blur-3xl animate-float-slow"
-        style={{ animationDelay: '3s' }}
-      />
+    <div className="bg-hero-bg min-h-screen">
+      <Navbar />
+      <HeroSection />
 
-      {/* Nav */}
-      <nav className="sticky top-0 z-30 backdrop-blur-xl bg-white/60 border-b border-white/60">
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 max-w-7xl mx-auto">
-          <div className="flex items-center gap-2.5">
-            <div className="icon-tile w-9 h-9">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <span className="text-xl font-bold tracking-tight text-ink-900">Lumio</span>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-4">
-            <Link
-              to="/login"
-              className="text-ink-600 hover:text-ink-900 font-semibold text-sm px-3 py-2 transition-colors"
-            >
-              Log in
-            </Link>
-            <Link to="/signup" className="btn-primary">
-              <span className="hidden sm:inline">Get Started Free</span>
-              <span className="sm:hidden">Sign up</span>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero */}
-      <section className="px-4 sm:px-6 pt-16 sm:pt-24 pb-20 sm:pb-28 max-w-7xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-primary-700 text-xs sm:text-sm font-semibold mb-8 bg-white/70 backdrop-blur border border-primary-200/60 shadow-depth-sm">
-          <Zap className="w-4 h-4" />
-          Open-source AI chatbot platform
-        </div>
-
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-ink-900 leading-[1.05] tracking-tight mb-6">
-          Build AI chatbots
-          <br />
-          <span className="text-gradient">in five minutes</span>
-        </h1>
-
-        <p className="text-base sm:text-xl text-ink-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-          Upload your documents, pick a personality, and deploy an intelligent chatbot across
-          your website, WhatsApp, Instagram and Slack. No code required.
-        </p>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-          <Link to="/signup" className="btn-primary w-full sm:w-auto !text-base !px-7 !py-3.5">
-            Start building — it's free
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-          <a href="#features" className="btn-secondary w-full sm:w-auto !text-base !px-7 !py-3.5">
-            See how it works
-          </a>
-        </div>
-
-        {/* 3D dashboard mockup — tilted in perspective, straightens on hover */}
-        <div className="mt-16 sm:mt-20 [perspective:2000px]">
-          <div
-            className="mx-auto max-w-5xl rounded-2xl overflow-hidden border border-white/70 bg-white/80 backdrop-blur-xl shadow-depth-xl
-                       transition-transform duration-700 ease-out
-                       [transform:rotateX(12deg)] hover:[transform:rotateX(0deg)]"
-          >
-            <div className="flex items-center gap-2 px-4 py-3 bg-ink-100/80 border-b border-ink-200">
-              <div className="w-3 h-3 rounded-full bg-red-400" />
-              <div className="w-3 h-3 rounded-full bg-yellow-400" />
-              <div className="w-3 h-3 rounded-full bg-green-400" />
-              <span className="text-xs sm:text-sm text-ink-500 ml-2 truncate">lumio.app/dashboard</span>
-            </div>
-            <div className="p-6 sm:p-10 bg-gradient-to-br from-primary-50/60 via-white to-accent-50/60 min-h-[240px] sm:min-h-[320px]">
-              {/* Mini stat row */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                {[
-                  { label: 'Total Bots', value: '6' },
-                  { label: 'Active', value: '4' },
-                  { label: 'Messages', value: '12.4k' },
-                  { label: 'Resolved', value: '87%' },
-                ].map((s) => (
-                  <div key={s.label} className="card p-3 text-left">
-                    <p className="text-[11px] text-ink-500">{s.label}</p>
-                    <p className="text-lg sm:text-xl font-bold text-ink-900">{s.value}</p>
-                  </div>
-                ))}
-              </div>
-              {/* Mini chat preview */}
-              <div className="card p-4 text-left max-w-md mx-auto space-y-2.5">
-                <div className="flex justify-end">
-                  <span className="px-3 py-2 rounded-2xl rounded-br-sm bg-gradient-to-br from-primary-500 to-primary-700 text-white text-xs shadow-glow">
-                    What are your opening hours?
-                  </span>
-                </div>
-                <div className="flex justify-start">
-                  <span className="px-3 py-2 rounded-2xl rounded-bl-sm bg-white border border-ink-200 text-ink-700 text-xs shadow-depth-sm">
-                    We're open 9–6, Mon to Fri. <span className="text-primary-600">[Source 1]</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="px-4 sm:px-6 py-20 sm:py-24 scroll-mt-20">
+      {/* ── Features ─────────────────────────────────────────────────── */}
+      <section id="features" className="relative bg-background px-6 md:px-10 lg:px-16 py-24 md:py-32 scroll-mt-20">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center text-ink-900 mb-4 tracking-tight">
-            Everything you need
-          </h2>
-          <p className="text-ink-600 text-center mb-14 max-w-2xl mx-auto">
-            A complete platform to build, deploy and manage AI chatbots that actually help
-            your customers.
-          </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {features.map((feature) => (
-              <div key={feature.title} className="card-3d p-6 group">
-                <div className="icon-tile w-12 h-12 mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                  <feature.icon className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-ink-900 mb-2">{feature.title}</h3>
-                <p className="text-ink-600 text-sm leading-relaxed">{feature.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="px-4 sm:px-6 py-20 sm:py-24">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center text-ink-900 mb-14 tracking-tight">
-            How it works
-          </h2>
-          <div className="space-y-5">
-            {steps.map((item) => (
-              <div key={item.step} className="card-3d p-5 sm:p-6 flex gap-4 sm:gap-6 items-start">
-                <div className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 text-white flex items-center justify-center font-bold text-lg shadow-glow">
-                  {item.step}
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-base sm:text-lg font-bold text-ink-900 mb-1.5">
-                    {item.title}
-                  </h3>
-                  <p className="text-ink-600 text-sm leading-relaxed">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="px-4 sm:px-6 py-16 sm:py-20">
-        <div className="max-w-4xl mx-auto rounded-3xl bg-gradient-to-br from-primary-600 via-primary-700 to-accent-600 px-6 sm:px-12 py-14 text-center shadow-glow-lg relative overflow-hidden">
-          {/* Sheen overlay */}
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"
-          />
-          <div className="relative">
-            <h2 className="text-2xl sm:text-4xl font-bold text-white mb-4 tracking-tight">
-              Ready to build your AI chatbot?
+          <Reveal>
+            <span className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-primary mb-4">
+              <Sparkles className="w-3.5 h-3.5" />
+              Everything included
+            </span>
+            <h2 className="text-[clamp(2rem,4vw,3.25rem)] font-bold tracking-[-0.03em] leading-[1.1] text-foreground mb-4 uppercase">
+              Built like a product,
+              <br />
+              <span className="text-primary">not a demo</span>
             </h2>
-            <p className="text-primary-100 text-base sm:text-lg mb-8 max-w-xl mx-auto">
-              Free and open source. Run it locally with Ollama, or deploy it in minutes.
+            <p className="text-muted-foreground text-base md:text-lg font-light max-w-2xl mb-14">
+              Every piece below is implemented and working — retrieval, the agent loop, the
+              channel integrations, the handoff logic. Not a roadmap.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          </Reveal>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {features.map((feature, i) => (
+              <Reveal key={feature.title} delay={(i % 3) * 0.08}>
+                <div className="group h-full card-3d p-6">
+                  <div className="icon-tile-soft w-11 h-11 mb-5 transition-transform duration-300 group-hover:scale-110">
+                    <feature.icon className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground text-sm font-light leading-relaxed">
+                    {feature.desc}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── How it works ─────────────────────────────────────────────── */}
+      <section id="how-it-works" className="relative bg-hero-bg px-6 md:px-10 lg:px-16 py-24 md:py-32 scroll-mt-20">
+        <div className="max-w-5xl mx-auto">
+          <Reveal>
+            <span className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-primary mb-4">
+              <Workflow className="w-3.5 h-3.5" />
+              From zero to live
+            </span>
+            <h2 className="text-[clamp(2rem,4vw,3.25rem)] font-bold tracking-[-0.03em] leading-[1.1] text-foreground mb-14 uppercase">
+              Four steps
+            </h2>
+          </Reveal>
+
+          <div className="space-y-3">
+            {steps.map((item, i) => (
+              <Reveal key={item.step} delay={i * 0.08}>
+                <div className="group flex gap-5 md:gap-8 items-start rounded-xl border border-border bg-card/60 p-5 md:p-7 transition-colors hover:border-primary/40">
+                  <span className="flex-shrink-0 text-primary font-bold text-lg md:text-xl tabular-nums tracking-tight pt-0.5">
+                    {item.step}
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="text-base md:text-lg font-semibold text-foreground mb-1.5">
+                      {item.title}
+                    </h3>
+                    <p className="text-muted-foreground text-sm font-light leading-relaxed">
+                      {item.desc}
+                    </p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Channels ─────────────────────────────────────────────────── */}
+      <section id="channels" className="relative bg-background px-6 md:px-10 lg:px-16 py-24 md:py-32 scroll-mt-20">
+        <div className="max-w-7xl mx-auto">
+          <Reveal>
+            <span className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-primary mb-4">
+              <MessageSquare className="w-3.5 h-3.5" />
+              Five channels
+            </span>
+            <h2 className="text-[clamp(2rem,4vw,3.25rem)] font-bold tracking-[-0.03em] leading-[1.1] text-foreground mb-4 uppercase">
+              Wherever they<span className="text-primary"> message you</span>
+            </h2>
+            <p className="text-muted-foreground text-base md:text-lg font-light max-w-2xl mb-14">
+              Each bot stores its own credentials, entered from the dashboard — so two bots can
+              run two different numbers. A live test button calls the provider and reports the
+              real error before you go live.
+            </p>
+          </Reveal>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {channels.map((channel, i) => (
+              <Reveal key={channel.name} delay={(i % 3) * 0.08}>
+                <div className="h-full flex items-start gap-4 rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary/40">
+                  <div className="icon-tile-soft w-10 h-10 flex-shrink-0">
+                    <channel.icon className="w-4.5 h-4.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-semibold text-foreground mb-1">{channel.name}</h3>
+                    <p className="text-muted-foreground text-xs font-light leading-relaxed">
+                      {channel.note}
+                    </p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Open source ──────────────────────────────────────────────── */}
+      <section id="open-source" className="relative bg-hero-bg px-6 md:px-10 lg:px-16 py-24 md:py-32 scroll-mt-20">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <Reveal>
+            <span className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-primary mb-4">
+              <Github className="w-3.5 h-3.5" />
+              MIT licensed
+            </span>
+            <h2 className="text-[clamp(2rem,4vw,3.25rem)] font-bold tracking-[-0.03em] leading-[1.1] text-foreground mb-6 uppercase">
+              Yours to<span className="text-primary"> run</span>
+            </h2>
+            <p className="text-muted-foreground text-base md:text-lg font-light leading-relaxed mb-8">
+              Embeddings run locally on CPU and the vector store is embedded in the process, so
+              the entire retrieval pipeline works without a single paid API key. Point it at a
+              hosted model when you want more quality — or don't.
+            </p>
+            <ul className="space-y-3">
+              {openSourcePoints.map((point) => (
+                <li key={point} className="flex items-start gap-3 text-sm text-foreground/80 font-light">
+                  <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+
+          {/* Terminal-style proof panel — concrete over decorative */}
+          <Reveal delay={0.12}>
+            <div className="rounded-xl border border-border bg-card overflow-hidden shadow-depth-lg">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-background/60">
+                <span className="w-2.5 h-2.5 rounded-full bg-destructive/70" />
+                <span className="w-2.5 h-2.5 rounded-full bg-muted-foreground/40" />
+                <span className="w-2.5 h-2.5 rounded-full bg-primary/70" />
+                <span className="text-[11px] text-muted-foreground ml-2 font-mono">
+                  run it locally
+                </span>
+              </div>
+              <pre className="p-5 text-[12px] leading-relaxed font-mono text-muted-foreground overflow-x-auto">
+                <code>
+                  <span className="text-primary">$</span> git clone lumio && cd lumio{'\n'}
+                  <span className="text-primary">$</span> pip install -r backend/requirements.txt{'\n'}
+                  <span className="text-primary">$</span> uvicorn app.main:app --reload{'\n'}
+                  {'\n'}
+                  <span className="text-foreground/70">[DEV MODE] in-memory database</span>{'\n'}
+                  <span className="text-foreground/70">[startup] Lumio API ready on :8000</span>
+                  {'\n\n'}
+                  <span className="text-muted-foreground/50"># no Supabase, no API key,</span>{'\n'}
+                  <span className="text-muted-foreground/50"># no vector server required</span>
+                </code>
+              </pre>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ── CTA ──────────────────────────────────────────────────────── */}
+      <section className="relative bg-background px-6 md:px-10 lg:px-16 py-24 md:py-32 overflow-hidden">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-gradient-brand-soft"
+        />
+        <div className="relative max-w-3xl mx-auto text-center">
+          <Reveal>
+            <h2 className="text-[clamp(2rem,5vw,3.75rem)] font-bold tracking-[-0.04em] leading-[1.05] text-foreground mb-5 uppercase">
+              Ship a bot that<span className="text-primary"> knows things</span>
+            </h2>
+            <p className="text-muted-foreground text-base md:text-lg font-light mb-10 max-w-xl mx-auto">
+              Free, open source, and running on your own machine in about five minutes.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3 font-bold">
               <Link
                 to="/signup"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-primary-700 px-7 py-3.5 rounded-xl font-bold shadow-depth-lg hover:-translate-y-0.5 hover:shadow-depth-xl transition-all duration-200"
+                className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 text-sm rounded-sm hover:brightness-110 transition-all active:scale-[0.97]"
               >
-                Get started free
+                Start Building
                 <ArrowRight className="w-4 h-4" />
               </Link>
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 bg-white text-background px-8 py-4 text-sm rounded-sm hover:brightness-90 transition-all active:scale-[0.97]"
+              >
+                <Bot className="w-4 h-4" />
+                Explore the demo
+              </Link>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-8 text-primary-100 text-sm">
-              {['No credit card', 'Open source', 'Runs offline'].map((t) => (
-                <span key={t} className="inline-flex items-center gap-1.5">
-                  <Check className="w-4 h-4" />
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
+            <p className="text-muted-foreground/60 text-xs font-light mt-6">
+              No credit card. No signup wall on the demo. MIT licensed.
+            </p>
+          </Reveal>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="px-4 sm:px-6 py-8 border-t border-white/60 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      {/* ── Footer ───────────────────────────────────────────────────── */}
+      <footer className="bg-hero-bg border-t border-border px-6 md:px-10 lg:px-16 py-10">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary-500" />
-            <span className="text-ink-500 text-sm">Lumio &copy; 2026</span>
+            <Code2 className="w-4 h-4 text-primary" />
+            <span className="text-foreground text-sm font-semibold tracking-tight">LUMIO</span>
+            <span className="text-muted-foreground/60 text-xs ml-2">&copy; 2026</span>
           </div>
-          <span className="text-ink-500 text-sm">Built by Aniket Singh</span>
+          <span className="text-muted-foreground/60 text-xs">
+            Built by Aniket Singh · MIT licensed
+          </span>
         </div>
       </footer>
     </div>

@@ -27,7 +27,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       {/* Mobile scrim — closes the drawer on tap. Hidden on lg+. */}
       <div
         className={cn(
-          'fixed inset-0 z-40 bg-ink-950/50 backdrop-blur-sm lg:hidden transition-opacity duration-300',
+          'fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden transition-opacity duration-300',
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         )}
         onClick={onClose}
@@ -37,7 +37,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       <aside
         className={cn(
           'fixed left-0 top-0 z-50 h-screen w-[17rem] flex flex-col',
-          'bg-ink-900 text-ink-200',
+          'bg-hero-bg border-r border-border text-muted-foreground',
           'shadow-depth-xl transition-transform duration-300 ease-out',
           // Slides in on mobile; permanently docked from lg up.
           open ? 'translate-x-0' : '-translate-x-full',
@@ -45,12 +45,12 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         )}
       >
         {/* Brand */}
-        <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-border">
           <div className="icon-tile w-10 h-10 flex-shrink-0">
             <Sparkles className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <span className="block text-lg font-bold tracking-tight text-white leading-none">
+            <span className="block text-lg font-bold tracking-tight text-foreground leading-none">
               Lumio
             </span>
             <span className="block text-[11px] text-ink-400 mt-1">AI Chat Platform</span>
@@ -58,7 +58,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           {/* Close button only exists on mobile */}
           <button
             onClick={onClose}
-            className="lg:hidden p-1.5 -mr-1 text-ink-400 hover:text-white transition-colors"
+            className="lg:hidden p-1.5 -mr-1 text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />
@@ -77,8 +77,8 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                   'group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium',
                   'transition-all duration-200',
                   isActive
-                    ? 'bg-gradient-to-r from-primary-600/90 to-primary-500/70 text-white shadow-glow'
-                    : 'text-ink-400 hover:bg-white/5 hover:text-white'
+                    ? 'bg-primary text-primary-foreground shadow-glow'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                 )
               }
             >
@@ -100,14 +100,14 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         </nav>
 
         {/* User */}
-        <div className="border-t border-white/10 p-3">
-          <div className="flex items-center gap-3 rounded-xl bg-white/5 p-2.5">
-            <div className="w-9 h-9 flex-shrink-0 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white text-sm font-bold">
+        <div className="border-t border-border p-3">
+          <div className="flex items-center gap-3 rounded-xl bg-secondary/60 border border-border p-2.5">
+            <div className="w-9 h-9 flex-shrink-0 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-primary-foreground text-sm font-bold">
               {user?.full_name?.charAt(0)?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white truncate">{user?.full_name}</p>
-              <p className="text-xs text-ink-400 truncate">{user?.email}</p>
+              <p className="text-sm font-semibold text-foreground truncate">{user?.full_name}</p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
             </div>
             <button
               onClick={logout}

@@ -206,9 +206,9 @@ export default function ChannelsTab({ bot }: ChannelsTabProps) {
   return (
     <div className="space-y-4">
       {!bot.is_active && (
-        <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
-          <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-amber-800">
+        <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
+          <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-amber-300">
             This bot is <strong>inactive</strong>. Connected channels won't receive messages
             until you activate it using the toggle at the top of the page.
           </p>
@@ -227,10 +227,10 @@ export default function ChannelsTab({ bot }: ChannelsTabProps) {
                 <div
                   className={cn(
                     'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
-                    connected ? 'bg-green-50' : 'bg-gray-100'
+                    connected ? 'bg-green-500/10' : 'bg-gray-100'
                   )}
                 >
-                  <Icon className={cn('w-5 h-5', connected ? 'text-green-600' : 'text-gray-600')} />
+                  <Icon className={cn('w-5 h-5', connected ? 'text-green-400' : 'text-gray-600')} />
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-semibold text-gray-900">{channel.label}</h3>
@@ -266,7 +266,7 @@ export default function ChannelsTab({ bot }: ChannelsTabProps) {
 
               <div className="flex items-center gap-2 flex-shrink-0">
                 {connected && (
-                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/15 text-green-300">
                     Connected
                   </span>
                 )}
@@ -278,7 +278,7 @@ export default function ChannelsTab({ bot }: ChannelsTabProps) {
                     'px-4 py-1.5 rounded-full text-sm font-medium transition-colors',
                     connected
                       ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      : 'bg-primary-600 text-white hover:bg-primary-700'
+                      : 'bg-primary text-primary-foreground hover:brightness-110'
                   )}
                 >
                   {channel.id === 'website'
@@ -301,9 +301,9 @@ export default function ChannelsTab({ bot }: ChannelsTabProps) {
           <div className="space-y-4">
             {/* Setup steps */}
             {editing.setup_steps.length > 0 && (
-              <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
-                <p className="text-xs font-semibold text-blue-900 mb-1.5">Setup steps</p>
-                <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside">
+              <div className="bg-blue-500/10 border border-blue-500/25 rounded-lg p-3">
+                <p className="text-xs font-semibold text-blue-200 mb-1.5">Setup steps</p>
+                <ol className="text-xs text-blue-300 space-y-1 list-decimal list-inside">
                   {editing.setup_steps.map((s, i) => (
                     <li key={i}>{s}</li>
                   ))}
@@ -313,7 +313,7 @@ export default function ChannelsTab({ bot }: ChannelsTabProps) {
                     href={editing.docs_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-blue-700 font-medium mt-2 hover:underline"
+                    className="inline-flex items-center gap-1 text-xs text-blue-300 font-medium mt-2 hover:underline"
                   >
                     Open provider docs <ExternalLink className="w-3 h-3" />
                   </a>
@@ -379,8 +379,8 @@ export default function ChannelsTab({ bot }: ChannelsTabProps) {
                 className={cn(
                   'flex items-start gap-2 rounded-lg p-3 text-sm',
                   testResult.ok
-                    ? 'bg-green-50 border border-green-200 text-green-800'
-                    : 'bg-red-50 border border-red-200 text-red-800'
+                    ? 'bg-green-500/10 border border-green-500/30 text-green-300'
+                    : 'bg-red-500/10 border border-red-500/30 text-red-300'
                 )}
               >
                 {testResult.ok ? (
@@ -397,7 +397,7 @@ export default function ChannelsTab({ bot }: ChannelsTabProps) {
               {isConnected(editing.id) ? (
                 <button
                   onClick={() => handleDisconnect(editing)}
-                  className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
+                  className="text-sm text-red-400 hover:text-red-300 flex items-center gap-1"
                 >
                   <Trash2 className="w-4 h-4" />
                   Disconnect

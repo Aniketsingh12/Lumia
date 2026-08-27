@@ -12,7 +12,7 @@ export default function QuickReplies({ replies, onSelect }: QuickRepliesProps) {
         <button
           key={reply}
           onClick={() => onSelect(reply)}
-          className="px-3 py-1.5 bg-white border border-primary-200 text-primary-700 rounded-full text-xs font-medium hover:bg-primary-50 transition-colors"
+          className="px-3 py-1.5 bg-secondary border border-primary/30 text-primary rounded-full text-xs font-medium hover:bg-primary/10 transition-colors"
         >
           {reply}
         </button>

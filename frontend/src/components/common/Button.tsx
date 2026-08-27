@@ -19,9 +19,9 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const variants = {
-    primary: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500',
-    secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+    primary: 'bg-primary text-primary-foreground hover:brightness-110 focus:ring-primary-500',
+    secondary: 'bg-card text-gray-700 border border-gray-300 hover:bg-gray-50',
+    danger: 'bg-destructive text-destructive-foreground hover:brightness-110 focus:ring-red-500',
     ghost: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
   }
   const sizes = {

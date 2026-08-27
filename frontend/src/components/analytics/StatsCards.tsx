@@ -13,12 +13,12 @@ interface StatsCardsProps {
 
 export default function StatsCards({ stats }: StatsCardsProps) {
   const cards = [
-    { label: 'Messages', value: stats.total_messages.toLocaleString(), icon: MessageSquare, color: 'text-blue-600 bg-blue-50' },
-    { label: 'Conversations', value: stats.total_conversations.toLocaleString(), icon: Users, color: 'text-purple-600 bg-purple-50' },
-    { label: 'AI Resolution', value: `${(stats.ai_resolution_rate * 100).toFixed(0)}%`, icon: Zap, color: 'text-green-600 bg-green-50' },
-    { label: 'Avg Response', value: `${stats.avg_response_time}s`, icon: Clock, color: 'text-yellow-600 bg-yellow-50' },
-    { label: 'Handoffs', value: stats.human_handoffs.toString(), icon: AlertTriangle, color: 'text-red-600 bg-red-50' },
-    { label: 'Satisfaction', value: `${stats.satisfaction_score}/5`, icon: ThumbsUp, color: 'text-emerald-600 bg-emerald-50' },
+    { label: 'Messages', value: stats.total_messages.toLocaleString(), icon: MessageSquare, color: 'text-blue-400 bg-blue-500/10' },
+    { label: 'Conversations', value: stats.total_conversations.toLocaleString(), icon: Users, color: 'text-purple-400 bg-purple-500/10' },
+    { label: 'AI Resolution', value: `${(stats.ai_resolution_rate * 100).toFixed(0)}%`, icon: Zap, color: 'text-green-400 bg-green-500/10' },
+    { label: 'Avg Response', value: `${stats.avg_response_time}s`, icon: Clock, color: 'text-yellow-400 bg-yellow-500/10' },
+    { label: 'Handoffs', value: stats.human_handoffs.toString(), icon: AlertTriangle, color: 'text-red-400 bg-red-500/10' },
+    { label: 'Satisfaction', value: `${stats.satisfaction_score}/5`, icon: ThumbsUp, color: 'text-emerald-400 bg-emerald-500/10' },
   ]
 
   return (

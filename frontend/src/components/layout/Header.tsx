@@ -51,7 +51,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-30 h-16 flex items-center gap-3 px-4 sm:px-6 bg-white/70 backdrop-blur-xl border-b border-white/60">
+    <header className="sticky top-0 z-30 h-16 flex items-center gap-3 px-4 sm:px-6 bg-background/80 backdrop-blur-xl border-b border-border">
       {/* Hamburger — mobile only */}
       <button
         onClick={onMenuClick}
@@ -129,7 +129,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
         >
           <Bell className="w-5 h-5" />
           {activeCount > 0 && (
-            <span className="absolute top-1 right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-[10px] font-bold text-white flex items-center justify-center shadow-glow">
+            <span className="absolute top-1 right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-[10px] font-bold text-primary-foreground flex items-center justify-center shadow-glow">
               {activeCount}
             </span>
           )}
@@ -138,7 +138,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
         <div
           className={cn(
             'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
-            'bg-gradient-to-br from-primary-500 to-accent-500 text-white text-sm font-bold',
+            'bg-gradient-to-br from-primary-500 to-accent-500 text-primary-foreground text-sm font-bold',
             'shadow-glow'
           )}
           title={user?.full_name || 'User'}

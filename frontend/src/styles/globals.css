@@ -3,33 +3,47 @@
 @tailwind utilities;
 
 /*
- * Lumio design system
- * ===================
- * A "soft 3D" look: layered shadows for real depth, frosted-glass surfaces,
- * bevel highlights along top edges, and lift-on-hover transforms.
+ * Lumio design system — dark only
+ * ================================
+ * Vivid green on near-black charcoal, Sora throughout. There is no light mode:
+ * the tokens below are the single source of truth and are consumed through
+ * Tailwind as hsl(var(--token)) (see tailwind.config.ts).
  *
- * The core class names (.card, .btn-primary, .input, .label) are unchanged
- * from the previous flat theme, so every existing component picks up the new
- * styling without being touched.
+ * The component class names (.card, .btn-primary, .input, .label, .icon-tile)
+ * are unchanged from the previous light theme, so every existing page picks up
+ * the dark styling without being edited.
  */
 
 :root {
-  --primary: #7c3aed;
-  --primary-dark: #6d28d9;
-  --primary-light: #a78bfa;
-  --accent: #06b6d4;
+  --background: 0 0% 10%;
+  --foreground: 0 0% 96%;
 
-  --bg-primary: #ffffff;
-  --bg-secondary: #f6f7fb;
-  --bg-tertiary: #eef0f7;
+  --card: 0 0% 13%;
+  --card-foreground: 0 0% 96%;
 
-  --text-primary: #0f172a;
-  --text-secondary: #64748b;
-  --border: #e2e8f0;
+  --primary: 119 99% 46%;
+  --primary-foreground: 0 0% 4%;
 
-  --success: #10b981;
-  --warning: #f59e0b;
-  --error: #ef4444;
+  --secondary: 0 0% 18%;
+  --secondary-foreground: 0 0% 96%;
+
+  --muted: 0 0% 16%;
+  --muted-foreground: 0 0% 60%;
+
+  --accent: 119 99% 46%;
+  --accent-foreground: 0 0% 4%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 96%;
+
+  --border: 0 0% 20%;
+  --input: 0 0% 20%;
+  --ring: 119 99% 46%;
+
+  --radius: 0.5rem;
+
+  --nav-button: 0 0% 18%;
+  --hero-bg: 0 0% 8%;
 }
 
 * {
@@ -43,17 +57,18 @@ html {
 }
 
 body {
-  font-family: 'Inter', system-ui, sans-serif;
-  color: var(--text-primary);
-  background-color: var(--bg-secondary);
+  @apply font-sora antialiased;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   /* Never allow sideways scroll — wide tables/charts scroll in their own box. */
   overflow-x: hidden;
 }
 
-/* Ambient mesh: three soft colour pools behind the whole app. Fixed so it
-   doesn't scroll, and pointer-events:none so it never blocks clicks. */
+/* Ambient mesh: soft green pools behind the app shell. Fixed so it doesn't
+   scroll, pointer-events:none so it never blocks clicks. Far subtler than the
+   light theme's version — on a near-black ground a little glow goes a long way. */
 .app-mesh {
   position: fixed;
   inset: 0;
@@ -61,112 +76,101 @@ body {
   pointer-events: none;
   overflow: hidden;
   background:
-    radial-gradient(60rem 40rem at 8% -10%, rgba(124, 58, 237, 0.12), transparent 60%),
-    radial-gradient(50rem 35rem at 95% 0%, rgba(6, 182, 212, 0.12), transparent 55%),
-    radial-gradient(45rem 35rem at 50% 105%, rgba(167, 139, 250, 0.1), transparent 60%);
+    radial-gradient(60rem 40rem at 8% -10%, rgba(5, 224, 74, 0.07), transparent 60%),
+    radial-gradient(50rem 35rem at 95% 0%, rgba(5, 224, 74, 0.05), transparent 55%),
+    radial-gradient(45rem 35rem at 50% 105%, rgba(5, 224, 74, 0.04), transparent 60%);
 }
 
 @layer components {
   /* ---------------------------------------------------------------- buttons */
-  /* Gradient fill + coloured glow + bevel highlight, lifting on hover and
-     pressing back down on click. translateZ(0) promotes to its own layer so
-     the transform animates on the GPU. */
   .btn-primary {
     @apply relative inline-flex items-center justify-center gap-2
-           bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700
-           text-white px-4 py-2.5 rounded-xl font-semibold text-sm
+           bg-primary text-primary-foreground px-4 py-2.5 rounded-lg
+           font-semibold text-sm
            shadow-glow
            transition-all duration-200 ease-out
-           hover:-translate-y-0.5 hover:shadow-glow-lg
-           active:translate-y-0
-           focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2
+           hover:brightness-110 hover:-translate-y-0.5 hover:shadow-glow-lg
+           active:translate-y-0 active:scale-[0.97]
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0;
     transform: translateZ(0);
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2
-           bg-white/80 backdrop-blur-sm text-ink-700 px-4 py-2.5 rounded-xl
-           font-semibold text-sm border border-ink-200
-           shadow-depth-sm
+           bg-secondary text-secondary-foreground px-4 py-2.5 rounded-lg
+           font-semibold text-sm border border-border
            transition-all duration-200 ease-out
-           hover:-translate-y-0.5 hover:shadow-depth hover:border-ink-300 hover:bg-white
-           active:translate-y-0
-           focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2
+           hover:bg-secondary/80 hover:border-white/20
+           active:scale-[0.97]
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-danger {
     @apply inline-flex items-center justify-center gap-2
-           bg-gradient-to-br from-red-500 to-red-600 text-white px-4 py-2.5
-           rounded-xl font-semibold text-sm
-           shadow-[0_8px_24px_-6px_rgba(239,68,68,.45)]
+           bg-destructive text-destructive-foreground px-4 py-2.5
+           rounded-lg font-semibold text-sm
            transition-all duration-200 ease-out
-           hover:-translate-y-0.5 active:translate-y-0
-           focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2;
+           hover:brightness-110 active:scale-[0.97]
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl
-           text-sm font-medium text-ink-600
+    @apply inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg
+           text-sm font-medium text-muted-foreground
            transition-colors duration-200
-           hover:bg-ink-100 hover:text-ink-900
-           focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400;
+           hover:bg-secondary hover:text-foreground
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-ring;
   }
 
   /* ------------------------------------------------------------------ cards */
-  /* Frosted glass over the ambient mesh, with a bevel highlight on top. */
   .card {
-    @apply bg-white/85 backdrop-blur-xl rounded-2xl
-           border border-white/70 shadow-depth;
+    @apply bg-card rounded-xl border border-border shadow-depth;
   }
 
-  /* Interactive card: lifts toward the viewer on hover. */
+  /* Interactive card: lifts and picks up a green rim on hover. */
   .card-3d {
     @apply card transition-all duration-300 ease-out
            hover:-translate-y-1.5 hover:shadow-depth-xl
-           hover:border-primary-200;
+           hover:border-primary/40;
     transform: translateZ(0);
   }
 
-  /* Solid (non-glass) panel for dense content like tables. */
+  /* Solid panel for dense content like tables. */
   .panel {
-    @apply bg-white rounded-2xl border border-ink-200 shadow-depth-sm;
+    @apply bg-card rounded-xl border border-border shadow-depth-sm;
   }
 
   /* ----------------------------------------------------------------- inputs */
   .input {
-    @apply w-full px-3.5 py-2.5 rounded-xl text-sm
-           bg-white/90 border border-ink-200 text-ink-900
-           shadow-[inset_0_1px_2px_rgba(15,23,42,.04)]
+    @apply w-full px-3.5 py-2.5 rounded-lg text-sm
+           bg-background border border-input text-foreground
            transition-all duration-200
-           placeholder-ink-400
-           focus:outline-none focus:border-primary-400
-           focus:ring-4 focus:ring-primary-500/10
-           disabled:bg-ink-50 disabled:cursor-not-allowed;
+           placeholder:text-muted-foreground
+           focus:outline-none focus:border-primary
+           focus:ring-4 focus:ring-primary/15
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .label {
-    @apply block text-sm font-semibold text-ink-700 mb-1.5;
+    @apply block text-sm font-medium text-foreground/90 mb-1.5;
   }
 
   /* ---------------------------------------------------------------- surfaces */
-  /* Gradient icon tile — used for stat icons, channel icons, logos. */
   .icon-tile {
-    @apply flex items-center justify-center rounded-xl
-           bg-gradient-to-br from-primary-500 to-primary-700
-           text-white shadow-glow;
+    @apply flex items-center justify-center rounded-lg
+           bg-primary text-primary-foreground shadow-glow;
   }
 
   .icon-tile-soft {
-    @apply flex items-center justify-center rounded-xl
-           bg-gradient-to-br from-primary-50 to-primary-100
-           text-primary-600 border border-primary-200/60 shadow-depth-sm;
+    @apply flex items-center justify-center rounded-lg
+           bg-primary/10 text-primary border border-primary/25;
   }
 
   /* Gradient brand text for headings. */
   .text-gradient {
-    @apply bg-gradient-to-r from-primary-600 via-primary-500 to-accent-500
+    @apply bg-gradient-to-r from-primary via-[#4dfc8a] to-[#93ffb6]
            bg-clip-text text-transparent;
   }
 
@@ -186,15 +190,17 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: hsl(0 0% 25%);
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: hsl(0 0% 35%);
 }
 
-/* Respect users who ask for less motion: kill the float/fade animations and
-   the hover lifts rather than shipping motion they've opted out of. */
+/* Respect users who ask for less motion: kill the float/fade animations and the
+   hover lifts rather than shipping motion they've opted out of. Hero content
+   uses `opacity-0 animate-fade-up`, so the animation must still resolve to
+   fully-visible here — otherwise reduced-motion users would see nothing at all. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

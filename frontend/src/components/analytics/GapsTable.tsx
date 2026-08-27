@@ -27,7 +27,7 @@ export default function GapsTable({ questions }: GapsTableProps) {
                 <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
                   <td className="py-2.5 px-3 text-gray-700">{q.question}</td>
                   <td className="py-2.5 px-3 text-right">
-                    <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
+                    <span className="px-2 py-0.5 bg-amber-500/15 text-amber-300 rounded-full text-xs font-medium">
                       {q.count}x
                     </span>
                   </td>

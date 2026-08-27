@@ -40,7 +40,7 @@ export default function KnowledgeTab({ botId }: { botId: string }) {
         </div>
         <div className="card px-4 py-3">
           <p className="text-sm text-gray-500">Status</p>
-          <p className="text-2xl font-bold text-green-600">
+          <p className="text-2xl font-bold text-green-400">
             {docs.every((d) => d.status === 'ready') ? 'Ready' : 'Processing'}
           </p>
         </div>

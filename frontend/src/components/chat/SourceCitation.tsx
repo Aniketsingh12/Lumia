@@ -14,7 +14,7 @@ export default function SourceCitation({ source, index }: SourceCitationProps) {
   const needsEllipsis = raw.length > 80
 
   return (
-    <div className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 rounded-md px-2 py-1 text-xs mr-1 mt-1">
+    <div className="inline-flex items-center gap-1.5 bg-blue-500/10 text-blue-300 rounded-md px-2 py-1 text-xs mr-1 mt-1">
       <FileText className="w-3 h-3" />
       <span>
         Source {index}: {preview || 'Source document'}

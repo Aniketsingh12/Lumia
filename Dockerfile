@@ -22,6 +22,15 @@ WORKDIR /fe
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
+# Optional demo account for the login page's one-click "Explore the live demo"
+# button. Same build-time constraint as VITE_API_URL above: these must be ARGs,
+# not just runtime variables, or Vite would bake in empty strings and the button
+# would never render. Unset on a real client deploy to hide the button entirely.
+ARG VITE_DEMO_EMAIL
+ENV VITE_DEMO_EMAIL=$VITE_DEMO_EMAIL
+ARG VITE_DEMO_PASSWORD
+ENV VITE_DEMO_PASSWORD=$VITE_DEMO_PASSWORD
+
 # Dependencies first so this layer caches unless the lockfile changes.
 # devDependencies are needed: `npm run build` runs `tsc` before `vite build`.
 COPY frontend/package.json frontend/package-lock.json ./

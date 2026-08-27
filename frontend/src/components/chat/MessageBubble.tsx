@@ -27,13 +27,13 @@ export default function MessageBubble({ message, showDebug }: MessageBubbleProps
       <div
         className={cn(
           'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
-          isCustomer ? 'bg-gray-200' : isAgent ? 'bg-orange-100' : 'bg-primary-100'
+          isCustomer ? 'bg-gray-200' : isAgent ? 'bg-orange-500/15' : 'bg-primary-100'
         )}
       >
         {isCustomer ? (
           <User className="w-4 h-4 text-gray-600" />
         ) : isAgent ? (
-          <Headphones className="w-4 h-4 text-orange-600" />
+          <Headphones className="w-4 h-4 text-orange-400" />
         ) : (
           <Bot className="w-4 h-4 text-primary-600" />
         )}
@@ -45,9 +45,9 @@ export default function MessageBubble({ message, showDebug }: MessageBubbleProps
           className={cn(
             'rounded-2xl px-4 py-2.5 text-sm',
             isCustomer
-              ? 'bg-primary-600 text-white rounded-tr-sm'
+              ? 'bg-primary text-primary-foreground rounded-tr-sm'
               : isAgent
-              ? 'bg-orange-50 text-gray-900 border border-orange-200 rounded-tl-sm'
+              ? 'bg-orange-500/10 text-gray-900 border border-orange-500/30 rounded-tl-sm'
               : 'bg-gray-100 text-gray-900 rounded-tl-sm'
           )}
         >

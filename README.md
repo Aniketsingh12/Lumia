@@ -106,6 +106,17 @@ Dev mode ships with three ready-to-use accounts:
 
 Or register your own from the signup form (passwords must be 8–72 characters).
 
+> **Note:** the seed email is `admin@botforge.**dev**`, not `.local`. A `.local`
+> address is rejected by the email validator (it's a reserved TLD), which is why
+> the account moved — logging in with the old address returns `401 Invalid
+> credentials`.
+
+Setting `VITE_DEMO_EMAIL` / `VITE_DEMO_PASSWORD` (see
+[`frontend/.env.example`](frontend/.env.example)) adds a one-click **Explore the
+live demo** button to the login page, so a visitor never has to guess
+credentials. Leave them unset on a real deployment and the button doesn't
+render.
+
 ### Run fully offline / free (no Anthropic, no OpenAI)
 
 **Option A — local models via Ollama:**
