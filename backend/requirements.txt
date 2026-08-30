@@ -6,7 +6,15 @@ python-dotenv==1.0.1
 pydantic[email]==2.10.4
 pydantic-settings==2.7.1
 email-validator==2.2.0
-tf-keras
+# (tf-keras was removed — it pulls in the whole TensorFlow package, and
+# `transformers` auto-imports TF at startup whenever it's installed. Nothing in
+# this codebase touches TensorFlow: sentence-transformers runs on PyTorch. The
+# result was both ML frameworks resident in RAM for the life of the container,
+# which on a usage-billed host is money spent on nothing. The give-away was the
+# boot log printing "This TensorFlow binary is optimized to..." and
+# "Could not find cuda drivers" on a service that only ever runs MiniLM on CPU.
+# If a future transformers version errors about Keras 3, prefer setting
+# TRANSFORMERS_NO_TF=1 over reinstating this.)
 
 # Database
 supabase==2.11.0

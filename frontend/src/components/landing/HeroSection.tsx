@@ -91,7 +91,7 @@ export default function HeroSection() {
           className="opacity-0 animate-fade-up text-muted-foreground/60 text-xs font-light mt-4 md:mt-6"
           style={{ animationDelay: '0.85s' }}
         >
-          Open source. Self-hostable. Six bot genres, five channels, zero vendor lock-in.
+          Open source · MIT licensed · Five channels · Bring your own model.
         </p>
       </div>
     </section>

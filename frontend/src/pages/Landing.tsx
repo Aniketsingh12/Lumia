@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
 import {
   ArrowRight, BarChart3, Bot, Check, Code2, Cpu, FileText, Github, Globe,
-  Instagram, Layers, Mail, MessageCircle, MessageSquare, Mic, Slack, Sparkles,
-  UserCheck, Wand2, Workflow, Zap,
+  Instagram, Layers, Mail, MessageCircle, MessageSquare, ShieldCheck, Slack,
+  Sparkles, UserCheck, Wand2, Workflow, Zap,
 } from 'lucide-react'
 import Navbar from '../components/landing/Navbar'
 import HeroSection from '../components/landing/HeroSection'
@@ -12,12 +12,12 @@ const features = [
   {
     icon: FileText,
     title: 'RAG with real citations',
-    desc: 'Documents are chunked, embedded locally and searched per bot. Every answer points back at the source chunk it came from — no silent hallucinations.',
+    desc: 'Documents are chunked, embedded and searched per bot, each in its own isolated collection. Every answer points back at the source chunk it came from — no silent hallucinations.',
   },
   {
     icon: Layers,
-    title: 'Six bot genres',
-    desc: 'Support, Sales, Booking, Tutor, Coding, or a free-form Character persona. Each one changes grounding strictness and whether low confidence escalates.',
+    title: 'Presets, then make it yours',
+    desc: 'Six starting points — Support, Sales, Booking, Tutor, Coding, Character — or write your own system prompt and the bot becomes whatever you describe. The presets are a shortcut, not a menu.',
   },
   {
     icon: Wand2,
@@ -46,19 +46,19 @@ const features = [
   },
   {
     icon: Cpu,
-    title: 'Any model you like',
-    desc: 'Claude, OpenAI, Together AI, or fully offline with Ollama. One environment variable switches the whole platform — no code changes.',
+    title: 'Not locked to one model',
+    desc: 'Claude, OpenAI, or Together AI. One environment variable switches the whole platform — every call goes through a single client, so there are no code changes to make.',
   },
   {
-    icon: Mic,
-    title: 'Vision and voice',
-    desc: 'Customers can send photos and voice notes. Images route to your chosen vision model; speech-to-text runs on Whisper or fully offline.',
+    icon: ShieldCheck,
+    title: 'Abuse protection built in',
+    desc: 'Public chat endpoints are rate limited per visitor and capped per bot per day, so a stray script can never run up your model bill.',
   },
 ]
 
 const steps = [
   { step: '01', title: 'Upload your knowledge', desc: 'Drag in PDFs, Word docs, spreadsheets or paste a URL. Everything is parsed, chunked, embedded and indexed automatically.' },
-  { step: '02', title: 'Pick a genre and a voice', desc: 'Choose what kind of bot it is, set the tone and rules — or describe it in a sentence and let the prompt generator write it for you.' },
+  { step: '02', title: 'Shape its personality', desc: 'Start from a preset, set the tone and rules, then customise as far as you want — up to writing the whole system prompt yourself, or describing it in a sentence and letting the generator draft it.' },
   { step: '03', title: 'Connect your channels', desc: 'Paste one script tag on your site, or connect WhatsApp, Instagram, Slack and Email with guided setup and a live credential test.' },
   { step: '04', title: 'Go live', desc: 'Flip the switch. Your bot answers with citations, escalates when unsure, and every conversation lands in your dashboard.' },
 ]
@@ -72,10 +72,10 @@ const channels = [
 ]
 
 const openSourcePoints = [
-  'Self-host it anywhere — your data never has to leave your servers',
-  'Run entirely offline with Ollama and local embeddings',
+  'MIT licensed — read, fork and audit every line',
+  'Swap the language model with a single environment variable',
   'No per-seat pricing, no message caps, no vendor lock-in',
-  'Swap the language model without touching a line of code',
+  'Multi-tenant from the start — every bot, document and conversation scoped to its own organisation',
 ]
 
 export default function Landing() {
@@ -203,12 +203,12 @@ export default function Landing() {
               MIT licensed
             </span>
             <h2 className="text-[clamp(2rem,4vw,3.25rem)] font-bold tracking-[-0.03em] leading-[1.1] text-foreground mb-6 uppercase">
-              Yours to<span className="text-primary"> run</span>
+              Yours to<span className="text-primary"> change</span>
             </h2>
             <p className="text-muted-foreground text-base md:text-lg font-light leading-relaxed mb-8">
-              Embeddings run locally on CPU and the vector store is embedded in the process, so
-              the entire retrieval pipeline works without a single paid API key. Point it at a
-              hosted model when you want more quality — or don't.
+              Retrieval happens inside the application itself — documents are embedded and
+              searched without calling out to a paid embeddings API, so the only thing you pay
+              for is the model that writes the final answer.
             </p>
             <ul className="space-y-3">
               {openSourcePoints.map((point) => (
@@ -220,30 +220,46 @@ export default function Landing() {
             </ul>
           </Reveal>
 
-          {/* Terminal-style proof panel — concrete over decorative */}
+          {/* Show the actual output rather than describing it — a grounded,
+              cited answer is the single clearest demonstration of what RAG buys you. */}
           <Reveal delay={0.12}>
             <div className="rounded-xl border border-border bg-card overflow-hidden shadow-depth-lg">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-background/60">
-                <span className="w-2.5 h-2.5 rounded-full bg-destructive/70" />
-                <span className="w-2.5 h-2.5 rounded-full bg-muted-foreground/40" />
-                <span className="w-2.5 h-2.5 rounded-full bg-primary/70" />
-                <span className="text-[11px] text-muted-foreground ml-2 font-mono">
-                  run it locally
+                <span className="w-2 h-2 rounded-full bg-primary" />
+                <span className="text-[11px] text-muted-foreground font-medium tracking-wide">
+                  Support bot · website widget
                 </span>
               </div>
-              <pre className="p-5 text-[12px] leading-relaxed font-mono text-muted-foreground overflow-x-auto">
-                <code>
-                  <span className="text-primary">$</span> git clone lumio && cd lumio{'\n'}
-                  <span className="text-primary">$</span> pip install -r backend/requirements.txt{'\n'}
-                  <span className="text-primary">$</span> uvicorn app.main:app --reload{'\n'}
-                  {'\n'}
-                  <span className="text-foreground/70">[DEV MODE] in-memory database</span>{'\n'}
-                  <span className="text-foreground/70">[startup] Lumio API ready on :8000</span>
-                  {'\n\n'}
-                  <span className="text-muted-foreground/50"># no Supabase, no API key,</span>{'\n'}
-                  <span className="text-muted-foreground/50"># no vector server required</span>
-                </code>
-              </pre>
+
+              <div className="p-5 space-y-3">
+                <div className="flex justify-end">
+                  <p className="max-w-[85%] rounded-xl rounded-br-sm bg-primary px-3.5 py-2 text-[13px] text-primary-foreground">
+                    Can I return something after 30 days?
+                  </p>
+                </div>
+
+                <div className="flex justify-start">
+                  <div className="max-w-[92%] rounded-xl rounded-bl-sm border border-border bg-background px-3.5 py-2.5">
+                    <p className="text-[13px] leading-relaxed text-foreground/90">
+                      Returns are accepted within 30 days of delivery, so a later request would
+                      fall outside the standard window — but unopened items can still be
+                      exchanged for store credit.
+                    </p>
+                    <div className="mt-2.5 flex flex-wrap items-center gap-2 border-t border-border pt-2">
+                      <span className="inline-flex items-center gap-1 rounded-sm bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                        <FileText className="w-2.5 h-2.5" />
+                        returns-policy.pdf
+                      </span>
+                      <span className="text-[10px] text-muted-foreground/70">confidence 8/10</span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="pt-1 text-[11px] leading-relaxed text-muted-foreground/60">
+                  Every answer carries the document it came from. Drop below the confidence
+                  threshold and the conversation escalates to a human instead of guessing.
+                </p>
+              </div>
             </div>
           </Reveal>
         </div>

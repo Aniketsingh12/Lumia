@@ -6,7 +6,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)](https://fastapi.tiangolo.com/)
 [![React 18](https://img.shields.io/badge/React-18-61dafb)](https://react.dev/)
 
-> **RAG-powered chatbots for any business — pick a genre (support, sales, booking, tutor, coding, or a fully custom character), upload documents, connect WhatsApp / Instagram / Slack / Email from the dashboard, or embed on your site. Runs on Claude, OpenAI, Together AI, *or* fully offline with Ollama.**
+> **RAG-powered chatbots for any business — start from a genre preset (support, sales, booking, tutor, coding, character) or write your own system prompt, upload documents, connect WhatsApp / Instagram / Slack / Email from the dashboard, or embed on your site. Runs on Claude, OpenAI, Together AI, *or* fully offline with Ollama.**
 
 **[Live demo →](https://botforge-demo.example.com)** &nbsp;·&nbsp; **[API docs →](https://botforge-demo.example.com/docs)** &nbsp;·&nbsp; **[Tech decisions →](docs/decisions.md)**
 
@@ -174,8 +174,8 @@ cd backend && python ../scripts/seed_demo.py
 
 ## What's interesting under the hood
 
-- **Six bot genres, one prompt builder.** A bot isn't hardcoded as a support
-  assistant — pick Support, Sales, Booking, Tutor, Coding, or **Character**
+- **Genre presets, not a fixed menu.** A bot isn't hardcoded as a support
+  assistant — start from Support, Sales, Booking, Tutor, Coding, or **Character**
   (a free-form persona for casual companion chat). Each genre controls
   grounding strictness (must-cite-sources vs. free conversation) and whether
   low confidence triggers human handoff. All genres share one system-prompt
@@ -209,9 +209,6 @@ cd backend && python ../scripts/seed_demo.py
   Ollama (chunked `/api/chat`). The widget renders with a typing cursor.
   See [`app/services/llm_client.py`](backend/app/services/llm_client.py) →
   `chat_stream`.
-- **Provider-agnostic vision and voice.** Vision routes to Claude, GPT-4o,
-  or LLaVA via Ollama. Speech-to-text uses OpenAI Whisper *or*
-  `faster-whisper` running offline.
 - **Per-bot ChromaDB collections** (`bot_{bot_id}`) — full document
   isolation between tenants without a shared filter on every query.
 - **Confidence-gated handoff.** The LLM self-reports `[Confidence: X/10]`,
@@ -226,9 +223,10 @@ For the *why* behind these choices, see **[docs/decisions.md](docs/decisions.md)
 
 ## Features
 
-- **Six bot genres** — Support, Sales, Booking, Tutor, Coding, or a custom
-  **Character/Companion** persona for casual chat, each with its own
-  grounding and handoff behavior.
+- **Genre presets you can outgrow** — Support, Sales, Booking, Tutor, Coding
+  or a **Character/Companion** persona, each with its own grounding and handoff
+  behavior. Every one is a starting point: `system_prompt_override` replaces the
+  preset entirely, so a bot can be anything you can describe.
 - **AI prompt generator** — describe the bot in plain language, get a
   structured system prompt back, edit as needed.
 - **Tool-using agent** — LLM autonomously calls tools (search KB, capture
@@ -247,7 +245,6 @@ For the *why* behind these choices, see **[docs/decisions.md](docs/decisions.md)
   satisfaction, resolution rate.
 - **Embeddable widget** — Single `<script>` tag for any site; renders in a
   Shadow DOM so it never clashes with the host page's CSS.
-- **Vision + voice** — Customers can send photos and voice notes.
 - **LLM-agnostic** — Claude / OpenAI / Together AI (or any OpenAI-compatible API) /
   Ollama, configurable per deployment.
 
@@ -259,7 +256,6 @@ For the *why* behind these choices, see **[docs/decisions.md](docs/decisions.md)
 | **Frontend**        | React 18 · TypeScript · Vite · TailwindCSS · Zustand · React Router · Recharts · Axios · native WebSocket                                  |
 | **AI / LLM**        | Anthropic Claude · OpenAI GPT-4o · Together AI / any OpenAI-compatible API · Ollama (LLaMA 3.1, LLaVA) · sentence-transformers (`all-MiniLM-L6-v2`) |
 | **RAG**             | ChromaDB · LangChain text splitter · PyPDF2 · python-docx · BeautifulSoup                                                                      |
-| **Speech / Vision** | OpenAI Whisper API · faster-whisper (offline) · Claude Vision · GPT-4o Vision · LLaVA                                                          |
 | **Database / Auth** | Supabase (PostgreSQL + Auth + Storage) · zero-config in-memory dev fallback                                                                       |
 | **Background jobs** | Celery · Redis                                                                                                                                    |
 | **Real-time**       | WebSocket (agent inbox) · Server-Sent Events (chat streaming)                                                                                     |

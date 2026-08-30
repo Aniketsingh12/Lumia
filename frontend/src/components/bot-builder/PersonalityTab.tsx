@@ -116,9 +116,14 @@ export default function PersonalityTab({ bot }: PersonalityTabProps) {
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="input" />
       </div>
 
-      {/* Genre */}
+      {/* Genre presets — a starting point, not a fixed menu. The Custom System
+          Prompt section below overrides whichever one is picked here. */}
       <div>
-        <label className="label">Bot Type</label>
+        <label className="label mb-0">Starting Preset</label>
+        <p className="text-xs text-gray-400 mb-2">
+          A shortcut to sensible defaults. Pick the closest one — you can rewrite the bot's
+          entire prompt further down.
+        </p>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
           {BOT_GENRES.map((genre) => (
             <button
@@ -252,9 +257,10 @@ export default function PersonalityTab({ bot }: PersonalityTabProps) {
       <div className="border-t border-gray-200 pt-6">
         <div className="flex items-center justify-between">
           <div>
-            <label className="label mb-0">Custom System Prompt</label>
+            <label className="label mb-0">Build Your Own</label>
             <p className="text-xs text-gray-400 mt-0.5">
-              Advanced — write the bot's whole prompt yourself. Overrides the{' '}
+              Not limited to the presets — write the bot's whole prompt yourself and it becomes
+              whatever you describe. Replaces the{' '}
               <span className="font-medium">{selectedGenre.label}</span> preset above.
             </p>
           </div>
@@ -262,7 +268,7 @@ export default function PersonalityTab({ bot }: PersonalityTabProps) {
             <button
               type="button"
               onClick={() => setShowPromptTools(true)}
-              className="btn-secondary text-sm"
+              className="btn-primary text-sm whitespace-nowrap"
             >
               Customize
             </button>
