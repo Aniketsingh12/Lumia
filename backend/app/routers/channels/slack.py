@@ -33,13 +33,18 @@ called by Slack's servers, not by our users. Slack verifies requests using
 signing secrets (not implemented here but recommended for production).
 """
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from app.middleware.rate_limiter import check_bot_quota, check_rate_limit
+from app.middleware.webhook_security import verify_slack_signature
 from app.services import channel_registry as registry
 from app.services.ai_engine import AIEngine
 from app.services.channel_router import ChannelRouter
 from app.services.conversation_manager import ConversationManager
+
+# See whatsapp.py — the per-bot daily quota is the real ceiling on spend.
+WEBHOOK_RATE_LIMIT = 120
 
 # Create the router instance. Mounted with prefix like "/api/channels/slack".
 router = APIRouter()
@@ -112,6 +117,8 @@ async def handle_slack_events(request: Request):
         - Successful processing: {"status": "ok"}
         - No bot configured: {"status": "no bot configured"}
     """
+    # Raw bytes first — Slack's HMAC covers the exact body as sent.
+    raw_body = await request.body()
     payload = await request.json()
 
     # URL verification challenge -- Slack sends this during initial webhook setup.
@@ -135,13 +142,34 @@ async def handle_slack_events(request: Request):
     # Route to the bot connected to this Slack workspace (team_id), so multiple
     # workspaces can each have their own bot. Falls back to the first Slack bot
     # when no workspace ID was configured.
-    bot = registry.find_bot_by_field("slack", "team_id", payload.get("team_id", ""))
-    if not bot:
+    team_id = payload.get("team_id", "")
+    bot = registry.find_bot_by_field("slack", "team_id", team_id)
+    if not bot and not team_id:
+        # team_id is optional in the connect form, so an absent one is a legitimate
+        # single-workspace setup. One that was sent but matched nothing is not, and
+        # falling back there would let a forged payload choose a bot to bill.
         bot = registry.find_bot_for_channel("slack")
     if not bot:
         return {"status": "no bot configured"}
 
     creds = registry.resolve_credentials(bot, "slack")
+
+    # Slack's signing secret is already a required field on connect, so unlike
+    # Meta this is verifiable for every properly-configured bot.
+    if not verify_slack_signature(
+        raw_body,
+        request.headers.get("X-Slack-Signature"),
+        request.headers.get("X-Slack-Request-Timestamp"),
+        creds.get("signing_secret"),
+    ):
+        raise HTTPException(status_code=403, detail="Invalid signature")
+
+    await check_rate_limit(
+        request.client.host if request.client else "unknown",
+        scope="webhook",
+        limit=WEBHOOK_RATE_LIMIT,
+    )
+    await check_bot_quota(bot["id"])
 
     # Process through the standard AI pipeline
     conv_manager = ConversationManager()

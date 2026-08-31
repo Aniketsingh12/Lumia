@@ -87,6 +87,16 @@ CHANNELS: dict[str, dict[str, Any]] = {
                 "generated": True,
                 "help": "Generated for you. Paste this into Meta's webhook configuration.",
             },
+            {
+                "key": "app_secret",
+                "label": "App secret",
+                "secret": True,
+                "required": False,
+                "help": "Meta → App Settings → Basic → App Secret. Strongly recommended: "
+                        "without it we cannot prove an incoming webhook really came from "
+                        "Meta, so anyone who learns your callback URL could trigger AI "
+                        "replies against your model budget.",
+            },
         ],
     },
     "instagram": {
@@ -124,6 +134,16 @@ CHANNELS: dict[str, dict[str, Any]] = {
                 "required": True,
                 "generated": True,
                 "help": "Generated for you. Paste this into Meta's webhook configuration.",
+            },
+            {
+                "key": "app_secret",
+                "label": "App secret",
+                "secret": True,
+                "required": False,
+                "help": "Meta → App Settings → Basic → App Secret. Strongly recommended: "
+                        "without it we cannot prove an incoming webhook really came from "
+                        "Meta, so anyone who learns your callback URL could trigger AI "
+                        "replies against your model budget.",
             },
         ],
     },

@@ -39,11 +39,19 @@ shared verify_token configured in the Meta Developer Portal.
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
+from app.middleware.rate_limiter import check_bot_quota, check_rate_limit
+from app.middleware.webhook_security import verify_meta_signature
 from app.services import channel_registry as registry
 from app.services.ai_engine import AIEngine
 from app.services.channel_router import ChannelRouter
 from app.services.conversation_manager import ConversationManager
 from app.services.voice_processor import transcribe_whatsapp_media
+
+# Providers batch and retry deliveries, so a busy number can legitimately burst
+# well past a human's send rate — this is set high enough not to drop real
+# traffic while still capping a flood from any single source. The per-bot daily
+# quota is what actually bounds total spend.
+WEBHOOK_RATE_LIMIT = 120
 
 # Create the router instance. Mounted with prefix like "/api/channels/whatsapp".
 router = APIRouter()
@@ -149,6 +157,9 @@ async def receive_message(request: Request):
 
     Response: {"status": "ok"} on success, or {"status": "no message"/"no bot configured"}
     """
+    # Read the RAW body before parsing: Meta's HMAC is computed over the exact
+    # bytes sent, which re-serialising the parsed dict would not reproduce.
+    raw_body = await request.body()
     payload = await request.json()
 
     # Normalize Meta's nested payload into our standard message format
@@ -173,12 +184,33 @@ async def receive_message(request: Request):
         pass
 
     bot = registry.find_bot_by_field("whatsapp", "phone_number_id", phone_number_id)
-    if not bot:
+    if not bot and not phone_number_id:
+        # Only fall back when Meta sent no number at all (a legacy/env-configured
+        # setup). A number that was sent but matches nothing is either a
+        # misconfiguration or a forged payload — falling back there would hand an
+        # attacker an arbitrary bot to run inference against.
         bot = registry.find_bot_for_channel("whatsapp")
     if not bot:
         return {"status": "no bot configured"}
 
     creds = registry.resolve_credentials(bot, "whatsapp")
+
+    # Now that the owning bot is known, prove the request actually came from Meta
+    # before spending anything on it. Unverifiable requests (no app secret stored)
+    # continue to the rate limiter and per-bot daily quota below.
+    if not verify_meta_signature(
+        raw_body, request.headers.get("X-Hub-Signature-256"), creds.get("app_secret")
+    ):
+        raise HTTPException(status_code=403, detail="Invalid signature")
+
+    # Defence in depth: bounds the spend even when the payload is authentic, and
+    # is the ONLY protection for a bot with no app secret configured.
+    await check_rate_limit(
+        request.client.host if request.client else "unknown",
+        scope="webhook",
+        limit=WEBHOOK_RATE_LIMIT,
+    )
+    await check_bot_quota(bot["id"])
 
     # Process message through the standard AI pipeline
     conv_manager = ConversationManager()

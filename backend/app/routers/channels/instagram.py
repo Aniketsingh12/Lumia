@@ -30,10 +30,16 @@ called by Meta's servers, not by our users.
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
+from app.middleware.rate_limiter import check_bot_quota, check_rate_limit
+from app.middleware.webhook_security import verify_meta_signature
 from app.services import channel_registry as registry
 from app.services.ai_engine import AIEngine
 from app.services.channel_router import ChannelRouter
 from app.services.conversation_manager import ConversationManager
+
+# See whatsapp.py for why this is generous — the per-bot daily quota is the
+# real spend ceiling; this only blunts a flood from one source.
+WEBHOOK_RATE_LIMIT = 120
 
 # Create the router instance. Mounted with prefix like "/api/channels/instagram".
 router = APIRouter()
@@ -113,6 +119,8 @@ async def receive_message(request: Request):
 
     Response: {"status": "ok"} on success, or {"status": "no message"/"no bot configured"}
     """
+    # Raw bytes first — Meta's HMAC is over the exact body as sent.
+    raw_body = await request.body()
     payload = await request.json()
 
     # Normalize Meta's Instagram payload into our standard message format
@@ -129,12 +137,29 @@ async def receive_message(request: Request):
         pass
 
     bot = registry.find_bot_by_field("instagram", "ig_user_id", ig_user_id)
-    if not bot:
+    if not bot and not ig_user_id:
+        # Fall back only when Meta sent no account id at all. An id that was sent
+        # but matched nothing is a misconfiguration or a forgery, and falling back
+        # would let an attacker pick an arbitrary bot to bill inference against.
         bot = registry.find_bot_for_channel("instagram")
     if not bot:
         return {"status": "no bot configured"}
 
     creds = registry.resolve_credentials(bot, "instagram")
+
+    # Prove the request came from Meta before spending anything on it.
+    if not verify_meta_signature(
+        raw_body, request.headers.get("X-Hub-Signature-256"), creds.get("app_secret")
+    ):
+        raise HTTPException(status_code=403, detail="Invalid signature")
+
+    # Defence in depth — and the only protection when no app secret is stored.
+    await check_rate_limit(
+        request.client.host if request.client else "unknown",
+        scope="webhook",
+        limit=WEBHOOK_RATE_LIMIT,
+    )
+    await check_bot_quota(bot["id"])
 
     # Process through the standard AI pipeline
     conv_manager = ConversationManager()
