@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import {
-  ArrowRight, BarChart3, Bot, Check, Code2, Cpu, FileText, Github, Globe,
-  Instagram, Layers, Mail, MessageCircle, MessageSquare, ShieldCheck, Slack,
+  ArrowRight, BarChart3, Bot, Check, Code2, FileText, Github, Globe, Inbox,
+  Instagram, Layers, Mail, MessageCircle, MessageSquare, Slack,
   Sparkles, UserCheck, Wand2, Workflow, Zap,
 } from 'lucide-react'
 import Navbar from '../components/landing/Navbar'
@@ -11,48 +11,43 @@ import Reveal from '../components/landing/Reveal'
 const features = [
   {
     icon: FileText,
-    title: 'RAG with real citations',
-    desc: 'Documents are chunked, embedded and searched per bot, each in its own isolated collection. Every answer points back at the source chunk it came from — no silent hallucinations.',
+    title: 'Answers out of your own documents',
+    desc: 'Drop in your PDFs, policies and help pages. Replies are built from them and show the file each fact came from, so you can check the answer instead of trusting it.',
+  },
+  {
+    icon: Wand2,
+    title: 'Describe it, and it writes the prompt',
+    desc: 'Say what the bot is for in a sentence — "a bakery bot that takes orders and answers allergy questions" — and get a complete prompt back, ready to edit. You never have to be good at prompting.',
   },
   {
     icon: Layers,
     title: 'Presets, then make it yours',
-    desc: 'Six starting points — Support, Sales, Booking, Tutor, Coding, Character — or write your own system prompt and the bot becomes whatever you describe. The presets are a shortcut, not a menu.',
-  },
-  {
-    icon: Wand2,
-    title: 'AI prompt generator',
-    desc: "Describe the bot in plain English and get a structured system prompt back. You don't have to be good at prompting to get a good bot.",
-  },
-  {
-    icon: Workflow,
-    title: 'Tool-using agent',
-    desc: 'A real agent loop: the model picks tools — search the knowledge base, capture a lead, escalate — runs them, and iterates until it can answer.',
-  },
-  {
-    icon: Zap,
-    title: 'Token streaming',
-    desc: 'Replies stream over Server-Sent Events, so answers appear as they are written instead of after an awkward pause. Works through any proxy.',
+    desc: 'Six starting points — Support, Sales, Booking, Tutor, Coding, Character — or write the whole prompt yourself and the bot becomes whatever you describe. The presets are a shortcut, not a menu.',
   },
   {
     icon: UserCheck,
-    title: 'Confidence-gated handoff',
-    desc: "The model rates its own certainty. Below the line — or on a complaint — the conversation escalates to a human instead of guessing.",
+    title: 'Knows when to fetch a human',
+    desc: 'When it is unsure of an answer, or the message reads as a complaint, the conversation is handed to a person instead of getting a confident guess.',
+  },
+  {
+    icon: Workflow,
+    title: 'Does things, not just talks',
+    desc: 'It can search your knowledge base, take down a name and email, and escalate a conversation — chaining those steps by itself before it answers.',
+  },
+  {
+    icon: Inbox,
+    title: 'Every conversation in one place',
+    desc: 'Website, WhatsApp, Instagram, Slack and email all land in the same inbox as they happen, with the full history and a reply box for when you want to take over.',
   },
   {
     icon: BarChart3,
-    title: 'Analytics that act',
-    desc: 'Top questions, channel breakdown, resolution rate — plus a knowledge-gap list telling you exactly which questions your docs fail to answer.',
+    title: 'Tells you what it could not answer',
+    desc: 'Top questions, busiest channels and resolution rate — plus the list of questions your documents failed, so you know exactly what to write next.',
   },
   {
-    icon: Cpu,
-    title: 'Not locked to one model',
-    desc: 'Claude, OpenAI, or Together AI. One environment variable switches the whole platform — every call goes through a single client, so there are no code changes to make.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Abuse protection built in',
-    desc: 'Public chat endpoints are rate limited per visitor and capped per bot per day, so a stray script can never run up your model bill.',
+    icon: Zap,
+    title: 'Replies start straight away',
+    desc: 'Answers appear word by word as they are written, so nobody sits watching a loading dot wondering whether it worked.',
   },
 ]
 
@@ -74,6 +69,7 @@ const channels = [
 const openSourcePoints = [
   'MIT licensed — read, fork and audit every line',
   'Swap the language model with a single environment variable',
+  'Rate limits and a daily cap per bot, so a stray script cannot run up the model bill you are paying',
   'No per-seat pricing, no message caps, no vendor lock-in',
   'Multi-tenant from the start — every bot, document and conversation scoped to its own organisation',
 ]

@@ -47,6 +47,9 @@ export default function PersonalityTab({ bot }: PersonalityTabProps) {
 
   const insertSample = () => {
     setCustomPrompt(getPromptSample(botType))
+    // The editor is collapsed by default, so anything that writes a prompt has
+    // to open it — otherwise the text lands somewhere the user cannot see.
+    setShowPromptTools(true)
     toast.success('Sample inserted — edit it to fit your bot')
   }
 
@@ -64,7 +67,8 @@ export default function PersonalityTab({ bot }: PersonalityTabProps) {
         tone,
       })
       setCustomPrompt(data.prompt)
-      toast.success('Prompt generated!')
+      setShowPromptTools(true) // reveal the editor so the result is visible
+      toast.success('Prompt generated — edit it before saving if you like')
     } catch (err) {
       toast.error(getErrorMessage(err, 'Could not generate a prompt'))
     }
@@ -255,67 +259,70 @@ export default function PersonalityTab({ bot }: PersonalityTabProps) {
 
       {/* Advanced: Custom System Prompt */}
       <div className="border-t border-gray-200 pt-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <label className="label mb-0">Build Your Own</label>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Not limited to the presets — write the bot's whole prompt yourself and it becomes
-              whatever you describe. Replaces the{' '}
-              <span className="font-medium">{selectedGenre.label}</span> preset above.
-            </p>
-          </div>
-          {!showPromptTools && (
+        <div>
+          <label className="label mb-0">Build Your Own</label>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Not limited to the presets — describe your bot and let AI write its prompt, or write
+            it yourself. Either one replaces the{' '}
+            <span className="font-medium">{selectedGenre.label}</span> preset above.
+          </p>
+        </div>
+
+        {/* The generator stays visible instead of living behind the "Customize"
+            toggle: it's the easiest way into a custom bot, and hiding it meant
+            the one feature that removes the prompt-writing barrier was the one
+            nobody found. */}
+        <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3 space-y-2">
+          <p className="text-xs font-medium text-gray-600 flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-primary-500" />
+            Describe your bot in a sentence and AI will write the prompt:
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={genDescription}
+              onChange={(e) => setGenDescription(e.target.value)}
+              className="input flex-1 text-sm"
+              placeholder="e.g., A support bot for my bakery that helps with orders and allergies"
+              onKeyDown={(e) => e.key === 'Enter' && !generating && generatePrompt()}
+            />
             <button
               type="button"
-              onClick={() => setShowPromptTools(true)}
-              className="btn-primary text-sm whitespace-nowrap"
+              onClick={generatePrompt}
+              disabled={generating}
+              className="btn-primary text-sm flex items-center gap-1.5 whitespace-nowrap"
             >
-              Customize
+              {generating ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
+              {generating ? 'Writing…' : 'Generate'}
             </button>
-          )}
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <button
+              type="button"
+              onClick={insertSample}
+              className="text-xs text-primary-600 font-medium hover:text-primary-700 flex items-center gap-1"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              Or insert a {selectedGenre.label} sample to edit
+            </button>
+            {!showPromptTools && (
+              <button
+                type="button"
+                onClick={() => setShowPromptTools(true)}
+                className="text-xs text-gray-500 font-medium hover:text-gray-700"
+              >
+                Or write it myself
+              </button>
+            )}
+          </div>
         </div>
 
         {showPromptTools && (
           <div className="mt-3 space-y-3">
-            {/* Generator + sample buttons */}
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 space-y-2">
-              <p className="text-xs font-medium text-gray-600 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-primary-500" />
-                Not sure what to write? Describe your bot and let AI draft it:
-              </p>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={genDescription}
-                  onChange={(e) => setGenDescription(e.target.value)}
-                  className="input flex-1 text-sm"
-                  placeholder="e.g., A support bot for my bakery that helps with orders and allergies"
-                  onKeyDown={(e) => e.key === 'Enter' && !generating && generatePrompt()}
-                />
-                <button
-                  type="button"
-                  onClick={generatePrompt}
-                  disabled={generating}
-                  className="btn-primary text-sm flex items-center gap-1.5 whitespace-nowrap"
-                >
-                  {generating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="w-4 h-4" />
-                  )}
-                  {generating ? 'Writing…' : 'Generate'}
-                </button>
-              </div>
-              <button
-                type="button"
-                onClick={insertSample}
-                className="text-xs text-primary-600 font-medium hover:text-primary-700 flex items-center gap-1"
-              >
-                <FileText className="w-3.5 h-3.5" />
-                Or insert a {selectedGenre.label} sample to edit
-              </button>
-            </div>
-
             {/* The prompt itself */}
             <textarea
               value={customPrompt}
