@@ -1,6 +1,5 @@
-# BotForge — AI Chatbot Platform
+# Lumio — AI Chatbot Platform
 
-[![CI](https://github.com/yourusername/botforge/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/botforge/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)](https://fastapi.tiangolo.com/)
@@ -8,7 +7,7 @@
 
 > **RAG-powered chatbots for any business — start from a genre preset (support, sales, booking, tutor, coding, character) or write your own system prompt, upload documents, connect WhatsApp / Instagram / Slack / Email from the dashboard, or embed on your site. Runs on Claude, OpenAI, Together AI, *or* fully offline with Ollama.**
 
-**[Live demo →](https://botforge-demo.example.com)** &nbsp;·&nbsp; **[API docs →](https://botforge-demo.example.com/docs)** &nbsp;·&nbsp; **[Tech decisions →](docs/decisions.md)**
+**[Live demo →](https://lumio-api-production.up.railway.app)** &nbsp;·&nbsp; **[API docs →](https://lumio-api-production.up.railway.app/docs)** &nbsp;·&nbsp; **[Tech decisions →](docs/decisions.md)**
 
 > 🎥 Replace this paragraph with a 30-second screen recording (`docs/screenshots/demo.gif`) showing: upload PDF → ask question → cited streamed answer → low-confidence handoff to dashboard.
 
@@ -33,7 +32,7 @@ flowchart LR
     API --> AE[AIEngine]
     AE --> LLM{LLMClient}
     LLM -->|provider=claude| C[Anthropic API]
-    LLM -->|provider=openai| O[OpenAI API]
+    LLM -->|provider=openai| O[OpenAI-compatible API<br/>Together AI / OpenAI / etc.]
     LLM -->|provider=ollama| OL[Ollama local]
 
     AE --> RAG[RAGPipeline]
@@ -63,8 +62,8 @@ fast.
 **Any platform:**
 
 ```bash
-git clone https://github.com/yourusername/botforge.git
-cd botforge
+git clone https://github.com/Aniketsingh12/AI-Chatbot-Platform.git
+cd AI-Chatbot-Platform
 
 # Backend (terminal 1)
 cd backend
@@ -87,7 +86,7 @@ Then open:
 **Prerequisites:** Python 3.11+, Node.js 18+.
 
 > **No Supabase, ChromaDB server, or API keys needed to try it.** With
-> `USE_DEV_DB=true` (the default in `.env.example`), BotForge runs entirely
+> `USE_DEV_DB=true` (the default in `.env.example`), Lumio runs entirely
 > in-memory — zero external services, data resets on restart. ChromaDB also
 > runs **embedded** by default (`CHROMA_MODE=embedded`, on-disk, no separate
 > server process). Add a Claude/OpenAI key or set `LLM_PROVIDER=ollama` when
@@ -214,6 +213,18 @@ cd backend && python ../scripts/seed_demo.py
 - **Confidence-gated handoff.** The LLM self-reports `[Confidence: X/10]`,
   parsed and combined with intent (`Complaint` → escalate at <70%) to drive
   the handoff decision.
+- **Abuse protection on every public entry point.** Chat, auth, and the
+  channel webhooks are all rate-limited per IP (`check_rate_limit`) with a
+  per-bot daily message cap (`check_bot_quota`) on top, so nobody can run up
+  the deployment's LLM bill just by hammering an endpoint. Falls back
+  in-memory when Redis isn't configured. See
+  [`app/middleware/rate_limiter.py`](backend/app/middleware/rate_limiter.py).
+- **Signature-verified webhooks.** WhatsApp/Instagram (`X-Hub-Signature-256`)
+  and Slack (`X-Slack-Signature`, with a 5-minute replay window) requests are
+  authenticated with HMAC before a single token is spent on them — a bot with
+  no secret configured yet still falls back to the rate limiter and daily
+  quota instead of being rejected outright. See
+  [`app/middleware/webhook_security.py`](backend/app/middleware/webhook_security.py).
 - **Test suite mocks the LLM.** `pytest -v` runs the AI engine end-to-end
   against an `AsyncMock` — no API keys, no network.
 
@@ -241,6 +252,10 @@ For the *why* behind these choices, see **[docs/decisions.md](docs/decisions.md)
 - **Streaming responses** — Server-Sent Events, works through any HTTP proxy.
 - **Human handoff** — Low-confidence answers escalate; agents see the
   conversation in real-time via WebSocket.
+- **Abuse protection** — Per-IP rate limits and a per-bot daily message quota
+  on every public endpoint, plus HMAC signature verification on the
+  WhatsApp/Instagram/Slack webhooks, so an anonymous caller can't run up the
+  deployment's LLM bill.
 - **Analytics** — Top questions, knowledge gaps, channel breakdown,
   satisfaction, resolution rate.
 - **Embeddable widget** — Single `<script>` tag for any site; renders in a
@@ -259,15 +274,15 @@ For the *why* behind these choices, see **[docs/decisions.md](docs/decisions.md)
 | **Database / Auth** | Supabase (PostgreSQL + Auth + Storage) · zero-config in-memory dev fallback                                                                       |
 | **Background jobs** | Celery · Redis                                                                                                                                    |
 | **Real-time**       | WebSocket (agent inbox) · Server-Sent Events (chat streaming)                                                                                     |
-| **Channels**        | Meta WhatsApp Cloud API · Instagram Graph API · Slack Bolt · IMAP / SMTP                                                                        |
-| **Auth & security** | JWT (`python-jose`) · `passlib[bcrypt]`                                                                                                       |
+| **Channels**        | Meta WhatsApp Cloud API · Instagram Graph API · Slack Web API (direct `httpx`, no Bolt SDK) · IMAP / SMTP                                       |
+| **Auth & security** | JWT (`python-jose`) · `passlib[bcrypt]` · per-IP/per-bot rate limiting · HMAC webhook signature verification                                  |
 | **Tooling**         | Ruff · Pytest · pytest-asyncio · TypeScript strict · ESLint · Prettier                                                                        |
-| **Infra**           | Render (backend) · Vercel (frontend) · GitHub Actions CI · Makefile                                                                             |
+| **Infra**           | Railway (single Docker service: API + dashboard) · Makefile · alt path: Render (backend) + Vercel (frontend)                                    |
 
 ## Project structure
 
 ```
-botforge/
+AI-Chatbot-Platform/
 ├── backend/                 # FastAPI service
 │   └── app/
 │       ├── main.py          # App entry point + router wiring + /widget.js
@@ -276,6 +291,8 @@ botforge/
 │       ├── dev_db.py        # Zero-config in-memory DB (dev mode)
 │       ├── static/
 │       │   └── widget.js    # Embeddable chat widget (vanilla JS, Shadow DOM)
+│       ├── middleware/      # auth, error_handler, rate_limiter,
+│       │                    # webhook_security (HMAC verification)
 │       ├── routers/         # auth, bots, knowledge, chat, conversations,
 │       │                    # analytics, widget, settings, channel_config,
 │       │                    # + channels/* (per-platform webhooks)
@@ -291,13 +308,14 @@ botforge/
 │   ├── decisions.md         # ADRs explaining the stack
 │   ├── api-reference.md
 │   ├── channels.md
-│   └── deployment.md
+│   ├── deployment.md        # legacy Render/Vercel/Railway-Celery guide
+│   └── deploy-free.md       # $0/mo path via Render + Vercel + Supabase + Upstash
 ├── scripts/                 # migrate.py, seed_demo.py, test_whatsapp.py
 ├── start.bat / start.ps1    # One-click local launcher (Windows)
-├── DEPLOY.md                # Deployment guide (Railway single service, Render, HF Spaces)
+├── DEPLOY.md                # Current deployment guide (Railway single service, HF Spaces)
 ├── render.yaml              # Render deploy blueprint
-├── Makefile                 # `make backend`, `make test`, `make lint`, ...
-└── .github/workflows/ci.yml
+├── railway.toml             # Railway deploy config
+└── Makefile                 # `make backend`, `make test`, `make lint`, ...
 ```
 
 ## Testing
@@ -308,7 +326,7 @@ make lint          # ruff + eslint
 make test-backend  # pytest -v (fully mocked, no keys needed)
 ```
 
-CI runs on every push: ruff, pytest, `tsc --noEmit`, and `vite build`.
+No CI workflow is wired up yet — `make test` / `make lint` are run manually before pushing.
 
 ## Documentation
 
@@ -317,9 +335,11 @@ CI runs on every push: ruff, pytest, `tsc --noEmit`, and `vite build`.
 - **[API reference](docs/api-reference.md)** — every endpoint
 - **[Channels setup](docs/channels.md)** — connecting WhatsApp, Instagram,
   Slack, Email per bot from the dashboard
-- **[Deployment](docs/deployment.md)** — Render / Vercel / Fly
-- **[Deployment guide](DEPLOY.md)** — Railway single service, or Hugging Face
-  Spaces + Vercel
+- **[Deployment guide](DEPLOY.md)** — current setup: Railway single service, or
+  Hugging Face Spaces + Vercel
+- **[Free deployment walkthrough](docs/deploy-free.md)** — Render + Vercel +
+  Supabase + Upstash, step by step
+- **[Legacy deployment notes](docs/deployment.md)** — superseded by `DEPLOY.md`
 
 > **Before deploying anywhere real:** change `JWT_SECRET` in `backend/.env`
 > away from the placeholder value — it ships in `.env.example`, so leaving it
@@ -331,5 +351,5 @@ MIT — see [LICENSE](LICENSE).
 
 ## Author
 
-Built by **Aniket Singh** as a portfolio project. Reach out for freelance
-work: [your-email] · [your-linkedin]
+Built by **[Aniket Singh](https://github.com/Aniketsingh12)** as a portfolio
+project.
