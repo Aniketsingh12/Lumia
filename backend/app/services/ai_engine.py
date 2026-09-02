@@ -318,8 +318,12 @@ class AIEngine:
                 history_text += f"{role}: {content}\n"
 
         # Assemble the genre-aware system prompt (identity, grounding rules, and
-        # handoff/confidence behavior all depend on the bot's genre).
-        system_prompt = build_system_prompt(bot_config, context_text, history_text)
+        # handoff/confidence behavior all depend on the bot's genre). Passing
+        # whether we actually retrieved anything lets grounded genres fall back
+        # to in-character behaviour instead of "I don't have that information".
+        system_prompt = build_system_prompt(
+            bot_config, context_text, history_text, has_context=bool(context_parts)
+        )
 
         # Send to LLM -- temperature 0.3 for consistent but slightly creative answers
         answer = await self.llm.chat(
@@ -378,7 +382,9 @@ class AIEngine:
             for msg in conversation_history[-10:]:
                 history_text += f"{msg.get('role', 'customer')}: {msg.get('content', '')}\n"
 
-        system_prompt = build_system_prompt(bot_config, context_text, history_text)
+        system_prompt = build_system_prompt(
+            bot_config, context_text, history_text, has_context=bool(context_parts)
+        )
 
         full_answer_parts: list[str] = []
         async for delta in self.llm.chat_stream(

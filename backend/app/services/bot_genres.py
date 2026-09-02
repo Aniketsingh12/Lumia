@@ -2,16 +2,16 @@
 Bot Genres Registry
 ====================
 
-Defines the different *kinds* of bots BotForge can build. Historically every
-bot was hardcoded as a "customer support assistant"; this registry makes the
-role a per-bot choice (`bot_type` on the bots table).
+Defines the different *kinds* of bots Lumio can build. Historically every bot
+was hardcoded as a "customer support assistant"; this registry makes the role a
+per-bot choice (`bot_type` on the bots table).
 
-Each genre controls three things:
+Each genre controls four things:
 
 1. **role** — the identity line injected into the system prompt
    ("You are {name}, a {tone} <role>").
 
-2. **grounded** — whether answers must come ONLY from the knowledge base.
+2. **grounding** — whether answers must come ONLY from the knowledge base.
    Grounded genres (support, sales, booking) cite sources and admit when the
    docs don't cover something. Ungrounded genres (character) chat freely.
    Soft-grounded genres (tutor, coding) prefer KB context when it exists but
@@ -19,6 +19,21 @@ Each genre controls three things:
 
 3. **allow_handoff** — whether low confidence escalates to a human agent.
    Support-style bots hand off; a chit-chat character never should.
+
+4. **extra_instructions** — the behavioural playbook that actually makes one
+   genre *sound* different from another. These are deliberately concrete
+   ("lead with the answer, then the detail") rather than adjectives
+   ("be helpful"), because a model given adjectives returns the same
+   middle-of-the-road reply for every genre.
+
+**no_kb_instructions** covers the case that made presets feel identical: a bot
+with an empty knowledge base. The three strict genres are told to answer ONLY
+from context, so with no context they all collapsed into the same "I don't have
+that information" dead end — and because that reads as low confidence, the
+handoff fired and the answer was replaced by the bot's fallback_message, which
+is one static string. Three of six presets therefore produced *literally* the
+same reply until a document was uploaded. Each genre now has a defined way to
+stay useful and in character with nothing indexed, without inventing facts.
 
 The special "character" genre uses the bot's `persona` field as its entire
 identity — e.g. "a cheerful pirate captain who speaks in nautical slang" —
@@ -35,8 +50,17 @@ BOT_GENRES: dict[str, dict] = {
         "grounding": "strict",   # answer only from KB, cite sources
         "allow_handoff": True,
         "extra_instructions": (
-            "- Help customers resolve issues quickly and politely\n"
-            "- If the context doesn't contain the answer, say so honestly"
+            "- Lead with the answer, then the detail — the customer is usually mid-problem\n"
+            "- Give steps they can follow (\"1. Open Settings  2. ...\"), not a description "
+            "of what could be done\n"
+            "- Acknowledge frustration once, briefly, then solve it; don't keep apologising\n"
+            "- Never guess at policy, pricing, account state or delivery dates — those must "
+            "come from the context\n"
+            "- Close by confirming whether that resolved it"
+        ),
+        "no_kb_instructions": (
+            "ask the single question that best narrows down their problem, and say plainly "
+            "what you are able to help with once you know more"
         ),
     },
     "sales": {
@@ -45,9 +69,17 @@ BOT_GENRES: dict[str, dict] = {
         "grounding": "strict",
         "allow_handoff": True,
         "extra_instructions": (
-            "- Highlight product benefits relevant to what the customer asks\n"
-            "- Gently guide interested customers toward the next step (demo, trial, purchase)\n"
-            "- Never invent prices, discounts, or features not present in the context"
+            "- Answer what they actually asked first, then connect it to the benefit that "
+            "matters for their situation\n"
+            "- Ask one qualifying question (team size, use case, timeline) to move the "
+            "conversation forward — one, not a questionnaire\n"
+            "- Offer a specific next step: a demo, a trial, the pricing page\n"
+            "- Never invent prices, discounts, stock or features that aren't in the context\n"
+            "- If it's genuinely a poor fit, say so — that earns more trust than a stretch"
+        ),
+        "no_kb_instructions": (
+            "ask what they're trying to accomplish and who it's for, so the conversation "
+            "keeps moving, and offer to put them in touch with someone who has specifics"
         ),
     },
     "booking": {
@@ -56,20 +88,34 @@ BOT_GENRES: dict[str, dict] = {
         "grounding": "strict",
         "allow_handoff": True,
         "extra_instructions": (
-            "- Help customers check availability, book, reschedule, or cancel\n"
-            "- Collect the details a booking needs (date, time, party size, contact)\n"
-            "- Confirm the details back to the customer before finalizing"
+            "- Drive toward a complete booking: date, time, party size, name, contact\n"
+            "- Ask only for what's still missing, one or two details at a time — never a "
+            "long form in one message\n"
+            "- Read the whole booking back for confirmation before treating it as final\n"
+            "- If the requested slot isn't available in the context, offer the nearest "
+            "alternatives rather than a flat no\n"
+            "- Never confirm a booking the context doesn't actually support"
+        ),
+        "no_kb_instructions": (
+            "collect the booking details anyway (date, time, party size, name, contact) and "
+            "tell them a person will confirm availability — do not claim a slot is free"
         ),
     },
     "tutor": {
         "label": "Tutor",
-        "role": "patient tutor and educator",
+        "role": "patient tutor",
         "grounding": "soft",     # prefer KB, but may teach from general knowledge
         "allow_handoff": False,
         "extra_instructions": (
-            "- Explain concepts step by step, checking understanding as you go\n"
-            "- Prefer the provided course material when it covers the topic\n"
-            "- Use examples and analogies; encourage questions"
+            "- Find out what they already know before explaining — pitch it there\n"
+            "- One idea at a time, built up in small steps; don't unload the whole topic\n"
+            "- Give a concrete example or analogy for every abstract point\n"
+            "- If they're stuck on a problem, give the next hint rather than the answer\n"
+            "- Finish with a short question that checks it landed"
+        ),
+        "no_kb_instructions": (
+            "teach it from general knowledge, and mention that it isn't drawn from their "
+            "own course material"
         ),
     },
     "coding": {
@@ -78,9 +124,16 @@ BOT_GENRES: dict[str, dict] = {
         "grounding": "soft",
         "allow_handoff": False,
         "extra_instructions": (
-            "- Give working code examples in fenced code blocks\n"
-            "- Prefer the project's own docs (the provided context) over general advice\n"
-            "- Point out pitfalls and edge cases briefly"
+            "- Lead with working code in a fenced block, with the language tagged\n"
+            "- Keep the prose under it short: what it does and why, not a line-by-line tour\n"
+            "- Name the specific pitfall that applies here, not a generic warning\n"
+            "- Match the language, framework and version used in the question or the context\n"
+            "- If the request is ambiguous, state the assumption you made and carry on "
+            "rather than stalling on a clarifying question"
+        ),
+        "no_kb_instructions": (
+            "answer from general programming knowledge, and note that it isn't based on "
+            "their project's own docs"
         ),
     },
     "character": {
@@ -89,10 +142,13 @@ BOT_GENRES: dict[str, dict] = {
         "grounding": "none",     # free conversation, KB is optional flavor
         "allow_handoff": False,
         "extra_instructions": (
-            "- Keep replies conversational and engaging, matching the character's voice\n"
-            "- Never break character or mention being an AI language model\n"
-            "- Keep responses reasonably short, like a real chat"
+            "- Stay in the character's voice — its vocabulary, rhythm and attitude\n"
+            "- A few sentences, like a real chat; no essays, no bullet lists, no headings\n"
+            "- React to what they actually said, and leave them something to reply to\n"
+            "- Hold opinions and preferences that stay consistent with the character\n"
+            "- Never break character or mention being an AI or a language model"
         ),
+        "no_kb_instructions": "just keep chatting in character",
     },
 }
 
@@ -104,7 +160,12 @@ def get_genre(bot_type: str | None) -> dict:
     return BOT_GENRES.get(bot_type or DEFAULT_GENRE, BOT_GENRES[DEFAULT_GENRE])
 
 
-def build_system_prompt(bot_config: dict, context_text: str, history_text: str) -> str:
+def build_system_prompt(
+    bot_config: dict,
+    context_text: str,
+    history_text: str,
+    has_context: bool = True,
+) -> str:
     """
     Build the full chat system prompt for a bot based on its genre.
 
@@ -116,6 +177,11 @@ def build_system_prompt(bot_config: dict, context_text: str, history_text: str) 
         context_text: Formatted RAG chunks ("[Source 1] ..." lines) or a
                       "no documents" placeholder.
         history_text: Formatted recent conversation history.
+        has_context: Whether the RAG search actually returned anything. When
+                     False, grounded genres switch to their `no_kb_instructions`
+                     so an unconfigured bot still behaves like its preset
+                     instead of dead-ending. Defaults to True so older callers
+                     keep their previous behaviour.
 
     Returns:
         The system prompt string for LLMClient.chat / chat_stream.
@@ -128,11 +194,22 @@ def build_system_prompt(bot_config: dict, context_text: str, history_text: str) 
 
     # Only handoff-capable genres need the self-reported confidence tag (it
     # drives the escalation decision and is stripped from the final answer).
-    confidence_line = (
-        "- Rate your confidence from 1-10 at the end of your response like this: [Confidence: X/10]\n"
-        if genre["allow_handoff"]
-        else ""
-    )
+    confidence_line = ""
+    if genre["allow_handoff"]:
+        confidence_line = (
+            "- Rate your confidence from 1-10 at the end of your response like this: "
+            "[Confidence: X/10]\n"
+        )
+        if not has_context:
+            # Without this, a bot with no documents rates every reply low, trips
+            # the <0.5 handoff threshold, and has its answer swapped for the
+            # static fallback_message — which is what made the presets look
+            # identical before a knowledge base existed.
+            confidence_line += (
+                "- Rate how well you handled the request, NOT whether documents were "
+                "available. Asking the right question, or explaining what you can help "
+                "with, is a good answer here — not a failure.\n"
+            )
 
     # ── Custom override ──────────────────────────────────────────────────────
     # If the bot owner wrote their own system prompt, use it verbatim as the
@@ -164,21 +241,31 @@ Conversation history:
 
     # Grounding rules differ per genre. Strict genres must not stray from the
     # KB; soft genres prefer it; "none" genres treat it as optional flavor.
-    if genre["grounding"] == "strict":
+    # The empty-KB branch comes first for the two grounded kinds, because
+    # "answer ONLY from the context" is meaningless with no context and is what
+    # flattened every grounded preset into the same reply.
+    if genre["grounding"] == "none":
+        grounding_block = (
+            "- The context above is optional background — use it only if it's relevant\n"
+            "- Chat naturally; you don't need to cite sources"
+        )
+    elif not has_context:
+        grounding_block = (
+            "- There is no knowledge-base material for this question\n"
+            "- Do NOT invent specifics about this business — no prices, policies, stock, "
+            "availability, dates or features\n"
+            f"- Stay useful in your role: {genre['no_kb_instructions']}"
+        )
+    elif genre["grounding"] == "strict":
         grounding_block = (
             "- Answer using ONLY the context provided above\n"
             "- Cite your sources (e.g., \"Based on Source 1...\")\n"
             "- If the context doesn't contain the answer, say so honestly"
         )
-    elif genre["grounding"] == "soft":
+    else:
         grounding_block = (
             "- Prefer the context provided above when it covers the question, and cite it\n"
             "- If the context doesn't cover it, you may answer from general knowledge"
-        )
-    else:
-        grounding_block = (
-            "- The context above is optional background — use it only if it's relevant\n"
-            "- Chat naturally; you don't need to cite sources"
         )
 
     return f"""{identity_line}
